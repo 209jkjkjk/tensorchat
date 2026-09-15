@@ -2102,7 +2102,7 @@ async fn oversized_and_empty_messages_are_rejected() {
 async fn invalid_channel_names_are_rejected() {
     let app = App::new();
     let (alice, _) = app.account("alice").await;
-    for name in ["", "Has Spaces", "UPPER", "emoji🎉", &"x".repeat(200)] {
+    for name in ["", "   ", "general\narchive", &"x".repeat(81)] {
         let (status, _) = app
             .send(
                 "POST",
@@ -2113,6 +2113,24 @@ async fn invalid_channel_names_are_rejected() {
             .await;
         assert_eq!(status, StatusCode::BAD_REQUEST, "name {name:?}");
     }
+}
+
+#[tokio::test]
+async fn unicode_channel_names_are_accepted_without_normalization() {
+    let app = App::new();
+    let (alice, _) = app.account("alice").await;
+    let name = "产品 讨论 🚀";
+    let (status, channel) = app
+        .send(
+            "POST",
+            "/api/channels",
+            Some(&alice),
+            Some(json!({ "name": name })),
+        )
+        .await;
+
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(channel["n"], name);
 }
 
 #[tokio::test]

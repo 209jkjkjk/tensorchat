@@ -56,7 +56,7 @@ function showError(node: HTMLElement, err: unknown): void {
 export function createChannelDialog(onCreated: (c: Channel) => void): void {
   const name = el('input', {
     class: 'modal-input',
-    placeholder: 'e.g. design-review',
+    placeholder: 'e.g. 产品讨论 🚀',
     'aria-label': 'Channel name',
   }) as HTMLInputElement;
   const topic = el('input', {
@@ -72,7 +72,7 @@ export function createChannelDialog(onCreated: (c: Channel) => void): void {
     'Create a channel',
     el('p', {
       class: 'modal-hint',
-      text: 'Lowercase letters, numbers, dashes and underscores.',
+      text: 'Names may include spaces, Unicode characters and emoji.',
     }),
     name,
     topic,
@@ -82,13 +82,7 @@ export function createChannelDialog(onCreated: (c: Channel) => void): void {
   );
 
   const create = async () => {
-    const raw = name.value
-      .trim()
-      .toLowerCase()
-      .replace(/^#/, '')
-      // Spaces are what people actually type; turn them into the dashes the
-      // server requires rather than rejecting the input.
-      .replace(/\s+/g, '-');
+    const raw = name.value.trim();
     if (!raw) return;
     submit.disabled = true;
     try {

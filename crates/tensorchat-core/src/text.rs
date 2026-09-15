@@ -9,6 +9,9 @@ use std::borrow::Cow;
 pub const MAX_BODY_BYTES: usize = 16 * 1024;
 pub const MAX_HANDLE_LEN: usize = 32;
 pub const MAX_DISPLAY_NAME_LEN: usize = 64;
+/// Maximum Unicode scalar values in a channel name. This is a character limit
+/// rather than a byte limit, so an 80-character Chinese name has the same
+/// allowance as an 80-character ASCII name.
 pub const MAX_CHANNEL_NAME_LEN: usize = 80;
 pub const MAX_TOPIC_LEN: usize = 250;
 pub const MAX_STATUS_LEN: usize = 100;
@@ -151,16 +154,15 @@ pub fn validate_handle(h: &str) -> Result<(), &'static str> {
     Ok(())
 }
 
-/// Channel names follow Slack's convention: lowercase, dash-separated.
+/// Channel names are human-facing labels, so they may use Unicode text,
+/// including spaces and emoji. Control characters would make a name ambiguous
+/// in the UI or protocol logs, so they remain forbidden.
 pub fn validate_channel_name(n: &str) -> Result<(), &'static str> {
-    if n.is_empty() || n.len() > MAX_CHANNEL_NAME_LEN {
+    if n.trim().is_empty() || n.chars().count() > MAX_CHANNEL_NAME_LEN {
         return Err("channel name must be 1-80 characters");
     }
-    if !n
-        .bytes()
-        .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit() || matches!(b, b'-' | b'_'))
-    {
-        return Err("channel name may contain only a-z, 0-9, '-' and '_'");
+    if n.chars().any(char::is_control) {
+        return Err("channel name may not contain control characters");
     }
     Ok(())
 }
@@ -308,5 +310,16 @@ mod tests {
         assert_eq!(clean_body("  hi  ").unwrap(), Some("hi"));
         assert_eq!(clean_body("   \n ").unwrap(), None);
         assert!(clean_body(&"x".repeat(MAX_BODY_BYTES + 1)).is_err());
+    }
+
+    #[test]
+    fn channel_names_accept_unicode_but_not_controls() {
+        for name in ["产品 讨论", "launch 🚀", "#general", "  spaced  "] {
+            assert!(validate_channel_name(name).is_ok(), "name {name:?}");
+        }
+        assert!(validate_channel_name("   ").is_err());
+        assert!(validate_channel_name("general\narchive").is_err());
+        assert!(validate_channel_name(&"界".repeat(MAX_CHANNEL_NAME_LEN)).is_ok());
+        assert!(validate_channel_name(&"界".repeat(MAX_CHANNEL_NAME_LEN + 1)).is_err());
     }
 }

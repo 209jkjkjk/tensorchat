@@ -268,13 +268,8 @@ pub(crate) fn pack_ids(ids: &[Id]) -> Vec<u8> {
 /// Inverse of [`pack_ids`]. Ignores a trailing partial element rather than
 /// panicking, so a corrupt row degrades to a missing mention.
 pub(crate) fn unpack_ids(blob: &[u8]) -> Vec<Id> {
-    blob.chunks_exact(8)
-        .map(|c| {
-            Id(u64::from_le_bytes(
-                c.try_into().expect("chunks_exact yields 8 bytes"),
-            ))
-        })
-        .collect()
+    let (chunks, _) = blob.as_chunks::<8>();
+    chunks.iter().map(|c| Id(u64::from_le_bytes(*c))).collect()
 }
 
 #[cfg(test)]

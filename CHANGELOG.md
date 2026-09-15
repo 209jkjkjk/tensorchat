@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Channel names accept Unicode.** Names may now contain spaces,
+  Chinese and other non-Latin text, and emoji. Control characters and blank
+  names remain invalid.
+
 ## [0.3.0] — 2026-08-05
 
 ### Added
