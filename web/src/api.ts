@@ -90,8 +90,12 @@ type Session = { token: string; user: User };
  * issuer, the client id, or anything else about the provider.
  */
 export type AuthProviders = { oidc: { label: string } | null };
+export type PublicConfig = { site_name: string };
 
 export const api = {
+  /** The unauthenticated branding the server chooses for this workspace. */
+  publicConfig: () => request<PublicConfig>('GET', '/api/config'),
+
   /** What sign-in methods exist. Readable without a session, by necessity. */
   authProviders: () => request<AuthProviders>('GET', '/api/auth/providers'),
 

@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **中文界面与可配置站点名称。** 前端可见文案现使用中文；设置
+  `TC_SITE_NAME` 可更改网页标题、登录页、侧栏和通知中显示的名称。
+
+### Changed
+
 - **Channel names accept Unicode.** Names may now contain spaces,
   Chinese and other non-Latin text, and emoji. Control characters and blank
   names remain invalid.

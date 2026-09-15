@@ -7,6 +7,7 @@
  */
 
 import { el, replace } from '../dom.ts';
+import { siteName } from '../brand.ts';
 import { ApiError, api, setToken } from '../api.ts';
 import type { User } from '../protocol.ts';
 
@@ -40,8 +41,8 @@ export function LoginScreen(onAuthenticated: (user: User) => void): HTMLElement 
     el(
       'div',
       { class: 'auth-card' },
-      el('h1', { class: 'auth-title', text: 'TensorChat' }),
-      el('p', { class: 'auth-sub', text: 'Fast, self-hosted team chat.' }),
+      el('h1', { class: 'auth-title', text: siteName() }),
+      el('p', { class: 'auth-sub', text: '快速、自托管的团队聊天。' }),
       form,
     ),
   );
@@ -49,7 +50,7 @@ export function LoginScreen(onAuthenticated: (user: User) => void): HTMLElement 
   const handle = el('input', {
     class: 'auth-input',
     type: 'text',
-    placeholder: 'handle',
+    placeholder: '用户名',
     autocomplete: 'username',
     required: 'required',
   }) as HTMLInputElement;
@@ -57,14 +58,14 @@ export function LoginScreen(onAuthenticated: (user: User) => void): HTMLElement 
   const displayName = el('input', {
     class: 'auth-input',
     type: 'text',
-    placeholder: 'display name',
+    placeholder: '显示名称',
     autocomplete: 'name',
   }) as HTMLInputElement;
 
   const password = el('input', {
     class: 'auth-input',
     type: 'password',
-    placeholder: 'password',
+    placeholder: '密码',
     autocomplete: 'current-password',
     required: 'required',
   }) as HTMLInputElement;
@@ -72,13 +73,13 @@ export function LoginScreen(onAuthenticated: (user: User) => void): HTMLElement 
   const submit = el('button', {
     class: 'auth-submit',
     type: 'submit',
-    text: 'Sign in',
+    text: '登录',
   }) as HTMLButtonElement;
 
   const toggle = el('button', {
     class: 'auth-toggle',
     type: 'button',
-    text: 'Create an account',
+    text: '创建账号',
     on: {
       click: () => {
         mode = mode === 'login' ? 'register' : 'login';
@@ -100,8 +101,8 @@ export function LoginScreen(onAuthenticated: (user: User) => void): HTMLElement 
   function render(): void {
     const registering = mode === 'register';
     password.autocomplete = registering ? 'new-password' : 'current-password';
-    submit.textContent = registering ? 'Create account' : 'Sign in';
-    toggle.textContent = registering ? 'I already have an account' : 'Create an account';
+    submit.textContent = registering ? '创建账号' : '登录';
+    toggle.textContent = registering ? '我已有账号' : '创建账号';
 
     // The banner only belongs on the sign-up form: an invite says nothing about
     // signing in to an account you already have.
@@ -109,10 +110,10 @@ export function LoginScreen(onAuthenticated: (user: User) => void): HTMLElement 
     if (showInvite) {
       inviteNote.textContent =
         inviteValid === null
-          ? 'Checking your invite…'
+          ? '正在验证邀请链接…'
           : inviteValid
-            ? "You have been invited. Pick a handle and you're in."
-            : 'That invite link has expired or has already been used.';
+            ? '你已获邀，请设置用户名后加入。'
+            : '该邀请链接已过期或已被使用。';
       inviteNote.classList.toggle('is-dead', inviteValid === false);
     }
     // Nothing to submit against a dead link, and disabling says so before the
@@ -141,11 +142,11 @@ export function LoginScreen(onAuthenticated: (user: User) => void): HTMLElement 
       providerButton = el(
         'div',
         { class: 'auth-provider' },
-        el('div', { class: 'auth-or', text: 'or' }),
+        el('div', { class: 'auth-or', text: '或' }),
         el('button', {
           class: 'auth-provider-button',
           type: 'button',
-          text: `Sign in with ${p.oidc.label}`,
+          text: `使用 ${p.oidc.label} 登录`,
           on: {
             // A full navigation, not a fetch. The provider answers with a
             // redirect to its own login page, which an XHR cannot follow —
@@ -188,13 +189,13 @@ export function LoginScreen(onAuthenticated: (user: User) => void): HTMLElement 
     const h = handle.value.trim().toLowerCase().replace(/^@/, '');
     const p = password.value;
     if (!h || !p) {
-      showError('Enter a handle and a password.');
+      showError('请输入用户名和密码。');
       return;
     }
 
     busy = true;
     submit.disabled = true;
-    submit.textContent = mode === 'register' ? 'Creating…' : 'Signing in…';
+    submit.textContent = mode === 'register' ? '正在创建…' : '正在登录…';
     try {
       const session =
         mode === 'register'
@@ -209,9 +210,9 @@ export function LoginScreen(onAuthenticated: (user: User) => void): HTMLElement 
       showError(
         err instanceof ApiError
           ? err.status === 401
-            ? 'That handle and password do not match.'
+            ? '用户名或密码不正确。'
             : err.message
-          : 'Could not reach the server.',
+          : '无法连接服务器。',
       );
       // Never leave a password sitting in the DOM after a failure.
       password.value = '';

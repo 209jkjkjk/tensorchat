@@ -27,14 +27,14 @@ export function ThreadPane(
   const body = el('div', { class: 'thread-body' });
   const root = el(
     'aside',
-    { class: 'thread-pane', aria: { label: 'Thread' } },
+    { class: 'thread-pane', aria: { label: '讨论串' } },
     el(
       'div',
       { class: 'pane-header' },
-      el('span', { class: 'pane-title', text: 'Thread' }),
+      el('span', { class: 'pane-title', text: '讨论串' }),
       el(
         'button',
-        { class: 'icon-button', title: 'Close thread', on: { click: actions.close } },
+        { class: 'icon-button', title: '关闭讨论串', on: { click: actions.close } },
         icon(ICONS.close, 16),
       ),
     ),
@@ -82,7 +82,7 @@ export function ThreadPane(
     replace(
       body,
       ordered.length === 0
-        ? [el('div', { class: 'empty', text: 'Loading…' })]
+        ? [el('div', { class: 'empty', text: '加载中…' })]
         : ordered.map((m, i) =>
             i === 0
               ? el(
@@ -112,7 +112,7 @@ export function SearchOverlay(
   const input = el('input', {
     class: 'search-input',
     type: 'search',
-    placeholder: 'Search messages, or try from: in: has:',
+    placeholder: '搜索消息，可使用 from:、in:、has:',
     'aria-label': 'Search messages',
   }) as HTMLInputElement;
 
@@ -150,7 +150,7 @@ export function SearchOverlay(
         input,
         el(
           'button',
-          { class: 'icon-button', title: 'Close', on: { click: () => close() } },
+          { class: 'icon-button', title: '关闭', on: { click: () => close() } },
           icon(ICONS.close, 16),
         ),
       ),
@@ -200,7 +200,7 @@ export function SearchOverlay(
 
   async function run(q: string): Promise<void> {
     const mine = ++sequence;
-    replace(results, [el('div', { class: 'search-status', text: 'Searching…' })]);
+    replace(results, [el('div', { class: 'search-status', text: '搜索中…' })]);
     try {
       const hits = await api.search(q, { limit: 40 });
       // Drop a response that a newer query has already superseded.
@@ -208,14 +208,14 @@ export function SearchOverlay(
       render(hits);
     } catch {
       if (mine === sequence) {
-        replace(results, [el('div', { class: 'search-status', text: 'Search failed.' })]);
+        replace(results, [el('div', { class: 'search-status', text: '搜索失败。' })]);
       }
     }
   }
 
   function render(hits: SearchHit[]): void {
     if (hits.length === 0) {
-      replace(results, [el('div', { class: 'search-status', text: 'No matches.' })]);
+      replace(results, [el('div', { class: 'search-status', text: '没有匹配结果。' })]);
       return;
     }
     replace(
@@ -275,15 +275,15 @@ export function PinnedPane(store: Store, actions: MessageActions): HTMLElement {
   const body = el('div', { class: 'pinned-body' });
   const root = el(
     'aside',
-    { class: 'pinned-pane', hidden: true, aria: { label: 'Pinned messages' } },
+    { class: 'pinned-pane', hidden: true, aria: { label: '置顶消息' } },
     el(
       'div',
       { class: 'pane-header' },
-      el('span', { class: 'pane-title', text: 'Pinned' }),
+      el('span', { class: 'pane-title', text: '置顶消息' }),
       el('button', {
         class: 'icon-button',
         text: '×',
-        title: 'Close',
+        title: '关闭',
         on: { click: () => (root.hidden = true) },
       }),
     ),
@@ -324,7 +324,7 @@ export function PinnedPane(store: Store, actions: MessageActions): HTMLElement {
       replace(body, [
         el('div', {
           class: 'empty',
-          text: 'Nothing pinned yet. Pin a message to keep it here.',
+          text: '还没有置顶消息。置顶消息后会显示在这里。',
         }),
       ]);
       return;
@@ -360,15 +360,15 @@ export function SavedPane(
   const body = el('div', { class: 'pinned-body' });
   const root = el(
     'aside',
-    { class: 'pinned-pane', hidden: true, aria: { label: 'Saved messages' } },
+    { class: 'pinned-pane', hidden: true, aria: { label: '收藏消息' } },
     el(
       'div',
       { class: 'pane-header' },
-      el('span', { class: 'pane-title', text: 'Saved' }),
+      el('span', { class: 'pane-title', text: '收藏消息' }),
       el('button', {
         class: 'icon-button',
         text: '×',
-        title: 'Close',
+        title: '关闭',
         on: { click: () => (root.hidden = true) },
       }),
     ),
@@ -402,7 +402,7 @@ export function SavedPane(
       replace(body, [
         el('div', {
           class: 'empty',
-          text: 'Nothing saved yet. Save a message to keep it here.',
+          text: '还没有收藏消息。收藏消息后会显示在这里。',
         }),
       ]);
       return;
@@ -419,7 +419,7 @@ export function SavedPane(
             text: channel
               ? `${channel.k === 'public' ? '#' : ''}${store.channelTitle(channel)}`
               : 'a channel',
-            title: 'Go to this message',
+            title: '前往此消息',
             on: { click: () => onOpenMessage(m.ch, m.id) },
           }),
           renderMessage(store, actions, m, false),
@@ -441,17 +441,17 @@ export function MemberList(store: Store, onOpenDm: (user: Id) => void): HTMLElem
   const body = el('div', { class: 'member-body' });
   const add = el('button', {
     class: 'icon-button',
-    title: 'Add people',
+    title: '添加成员',
     text: '+',
     hidden: true,
   }) as HTMLButtonElement;
   const root = el(
     'aside',
-    { class: 'member-pane', hidden: true, aria: { label: 'Members' } },
+    { class: 'member-pane', hidden: true, aria: { label: '成员' } },
     el(
       'div',
       { class: 'pane-header' },
-      el('span', { class: 'pane-title', text: 'Members' }),
+      el('span', { class: 'pane-title', text: '成员' }),
       add,
     ),
     body,

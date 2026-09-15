@@ -9,6 +9,8 @@ use std::path::PathBuf;
 
 #[derive(Debug, Clone)]
 pub struct Config {
+    /// Product name shown by the web client.
+    pub site_name: String,
     pub bind: SocketAddr,
     /// SQLite database path. Its parent directory must exist.
     pub db_path: PathBuf,
@@ -98,6 +100,7 @@ impl std::fmt::Debug for OidcConfig {
 impl Default for Config {
     fn default() -> Self {
         Config {
+            site_name: "TensorChat".to_string(),
             bind: "127.0.0.1:8080".parse().expect("valid default addr"),
             db_path: PathBuf::from("tensorchat.db"),
             blob_dir: PathBuf::from("blobs"),
@@ -127,6 +130,9 @@ impl Config {
     pub fn from_env() -> Result<Config, String> {
         let mut c = Config::default();
 
+        if let Ok(v) = std::env::var("TC_SITE_NAME") {
+            c.site_name = parse_site_name(&v)?;
+        }
         if let Ok(v) = std::env::var("TC_BIND") {
             c.bind = v.parse().map_err(|e| format!("TC_BIND: {e}"))?;
         }
@@ -281,6 +287,15 @@ fn parse_bool(v: &str) -> Option<bool> {
     }
 }
 
+/// Validate an operator-supplied product name before it reaches a browser.
+fn parse_site_name(raw: &str) -> Result<String, String> {
+    let name = raw.trim();
+    if name.is_empty() || name.chars().count() > 80 || name.chars().any(char::is_control) {
+        return Err("TC_SITE_NAME: expected 1-80 characters without control characters".into());
+    }
+    Ok(name.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -376,5 +391,13 @@ mod tests {
         // Binding 0.0.0.0 by default would expose an unconfigured instance to
         // the network on first run.
         assert!(Config::default().bind.ip().is_loopback());
+    }
+
+    #[test]
+    fn site_name_is_nonblank_bounded_and_safe_to_display() {
+        assert_eq!(parse_site_name(" 团队聊天 🚀 ").unwrap(), "团队聊天 🚀");
+        assert!(parse_site_name("  ").is_err());
+        assert!(parse_site_name("chat\nname").is_err());
+        assert!(parse_site_name(&"界".repeat(81)).is_err());
     }
 }

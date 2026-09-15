@@ -293,9 +293,9 @@ function messageEditor(actions: MessageActions, m: Message): HTMLElement {
     el(
       'div',
       { class: 'edit-actions' },
-      el('button', { class: 'edit-save', text: 'Save', on: { click: commit } }),
-      el('button', { class: 'edit-cancel', text: 'Cancel', on: { click: cancelEdit } }),
-      el('span', { class: 'edit-hint', text: 'Enter to save · Escape to cancel' }),
+      el('button', { class: 'edit-save', text: '保存', on: { click: commit } }),
+      el('button', { class: 'edit-cancel', text: '取消', on: { click: cancelEdit } }),
+      el('span', { class: 'edit-hint', text: 'Enter 保存 · Escape 取消' }),
     ),
   );
 }
@@ -317,7 +317,7 @@ function renderRow(store: Store, actions: MessageActions, row: Row): HTMLElement
         'div',
         { class: 'message-main' },
         el('div', { class: 'message-body', text: row.body }),
-        row.failed ? el('span', { class: 'send-failed', text: 'Not delivered' }) : null,
+        row.failed ? el('span', { class: 'send-failed', text: '发送失败' }) : null,
       ),
     );
   }
@@ -367,7 +367,7 @@ export function renderMessage(
   // the gutter would land beside the avatar instead of above the text.
   if (pinned) {
     main.appendChild(
-      el('div', { class: 'pinned-flag' }, icon(ICONS.pin, 11), el('span', { text: 'Pinned' })),
+      el('div', { class: 'pinned-flag' }, icon(ICONS.pin, 11), el('span', { text: '已置顶' })),
     );
   }
   if (!grouped) {
@@ -387,7 +387,7 @@ export function renderMessage(
   const openEditor = editingId();
 
   if (m.del) {
-    main.appendChild(el('div', { class: 'message-body tombstone', text: 'This message was deleted' }));
+    main.appendChild(el('div', { class: 'message-body tombstone', text: '此消息已删除' }));
   } else if (openEditor === m.id) {
     main.appendChild(messageEditor(actions, m));
     // No hover bar and no reactions while editing: the row is a form, and
@@ -406,7 +406,7 @@ export function renderMessage(
         onChannel: actions.openChannel,
       }),
     );
-    if (m.ed) body.appendChild(el('span', { class: 'edited', text: '(edited)' }));
+    if (m.ed) body.appendChild(el('span', { class: 'edited', text: '（已编辑）' }));
     main.appendChild(body);
 
     if (m.at?.length) main.appendChild(attachments(m.at));
@@ -516,7 +516,7 @@ function hoverActions(store: Store, actions: MessageActions, m: Message): HTMLEl
       'button',
       {
         class: 'action',
-        title: 'Add reaction',
+        title: '添加回应',
         on: {
           click: (ev: Event) =>
             openEmojiPicker({
@@ -535,7 +535,7 @@ function hoverActions(store: Store, actions: MessageActions, m: Message): HTMLEl
   bar.appendChild(
     el(
       'button',
-      { class: 'action', title: 'Reply in thread', on: { click: () => actions.openThread(m.id) } },
+      { class: 'action', title: '在线程中回复', on: { click: () => actions.openThread(m.id) } },
       icon(ICONS.thread, 14),
     ),
   );
@@ -545,7 +545,7 @@ function hoverActions(store: Store, actions: MessageActions, m: Message): HTMLEl
       'button',
       {
         class: 'action',
-        title: 'Copy link to message',
+        title: '复制消息链接',
         on: { click: () => actions.copyLink(m.ch, m.id) },
       },
       icon(ICONS.link, 14),
@@ -586,7 +586,7 @@ function hoverActions(store: Store, actions: MessageActions, m: Message): HTMLEl
     bar.appendChild(
       el(
         'button',
-        { class: 'action', title: 'Edit', on: { click: () => beginEdit(m.id, m.b) } },
+        { class: 'action', title: '编辑', on: { click: () => beginEdit(m.id, m.b) } },
         icon(ICONS.edit, 14),
       ),
     );
@@ -595,10 +595,10 @@ function hoverActions(store: Store, actions: MessageActions, m: Message): HTMLEl
         'button',
         {
           class: 'action danger',
-          title: 'Delete',
+          title: '删除',
           on: {
             click: () => {
-              if (confirm('Delete this message?')) actions.remove(m.id);
+              if (confirm('确定删除此消息？')) actions.remove(m.id);
             },
           },
         },

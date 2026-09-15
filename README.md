@@ -167,6 +167,7 @@ All configuration is environment variables. Everything has a working default.
 | `TC_DB` | `tensorchat.db` | SQLite database path. |
 | `TC_BLOBS` | `blobs` | Directory for uploaded files. |
 | `TC_WEB` | `web/dist` | Built frontend to serve. |
+| `TC_SITE_NAME` | `TensorChat` | 产品名称，显示在网页标题、登录页、侧栏和通知中。 |
 | `TC_NODE_ID` | `0` | Distinguishes ID generators if several instances share a database. |
 | `TC_MAX_UPLOAD` | `26214400` | Maximum upload size in bytes. |
 | `TC_OPEN_REGISTRATION` | `true` | Set `false` to close signups. Invite links still work — see below. |

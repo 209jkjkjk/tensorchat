@@ -7,6 +7,7 @@
 import { ICONS, el, icon, replace } from './dom.ts';
 import { effect } from './signals.ts';
 import { api, setToken } from './api.ts';
+import { setSiteName, siteName } from './brand.ts';
 import { clearAllDrafts } from './drafts.ts';
 import { Connection } from './ws.ts';
 import { store } from './store.ts';
@@ -32,6 +33,16 @@ const PAGE_SIZE = 50;
 const HIGHLIGHT_MS = 2200;
 
 export function mount(root: HTMLElement): void {
+  // Branding is public and needed by the sign-in screen, so fetch it before
+  // rendering anything. A failed request keeps the build-time default usable.
+  void api
+    .publicConfig()
+    .then((config) => setSiteName(config.site_name))
+    .catch(() => undefined)
+    .finally(() => mountApp(root));
+}
+
+function mountApp(root: HTMLElement): void {
   const token = api === undefined ? null : localStorage.getItem('tc_token');
 
   const showLogin = () => {
@@ -416,7 +427,7 @@ function start(root: HTMLElement): void {
   // Unread badge in the tab title.
   effect(() => {
     const mentions = store.totalMentions();
-    document.title = mentions > 0 ? `(${mentions}) TensorChat` : 'TensorChat';
+    document.title = mentions > 0 ? `(${mentions}) ${siteName()}` : siteName();
   });
 
   // Reading the channel you are looking at clears its badge.
@@ -499,7 +510,7 @@ function ChannelHeader(
               c.k === 'public' ? icon(ICONS.hash, 16) : c.k === 'private' ? icon(ICONS.lock, 16) : null,
               el('span', { text: store.channelTitle(c) }),
             )
-          : el('h1', { class: 'header-title', text: 'TensorChat' }),
+          : el('h1', { class: 'header-title', text: siteName() }),
         c?.t ? el('span', { class: 'header-topic', text: c.t }) : null,
       ),
       el(
@@ -507,7 +518,7 @@ function ChannelHeader(
         { class: 'header-actions' },
         el(
           'button',
-          { class: 'icon-button', title: 'Search (⌘K)', on: { click: actions.openSearch } },
+          { class: 'icon-button', title: '搜索（⌘K）', on: { click: actions.openSearch } },
           icon(ICONS.search, 17),
         ),
         // Only offered once there is something to show — an always-present
@@ -537,7 +548,7 @@ function ChannelHeader(
           : null,
         el(
           'button',
-          { class: 'icon-button', title: 'Members', on: { click: actions.toggleMembers } },
+          { class: 'icon-button', title: '成员', on: { click: actions.toggleMembers } },
           icon(ICONS.people, 17),
         ),
       ),
@@ -570,10 +581,10 @@ function AnchorBar(
     root.hidden = log.anchor === null;
     if (root.hidden) return;
     replace(root, [
-      el('span', { text: 'Viewing older messages' }),
+      el('span', { text: '正在查看较早的消息' }),
       el('button', {
         class: 'anchor-jump',
-        text: 'Jump to latest',
+        text: '跳到最新消息',
         on: { click: onJumpToLatest },
       }),
     ]);

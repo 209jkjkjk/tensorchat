@@ -45,8 +45,8 @@ export function Composer(
   const input = el('textarea', {
     class: 'composer-input',
     rows: 1,
-    placeholder: 'Message',
-    'aria-label': 'Message',
+    placeholder: '输入消息',
+    'aria-label': '消息',
   }) as HTMLTextAreaElement;
 
   const attachmentBar = el('div', { class: 'staged-attachments', hidden: true });
@@ -57,7 +57,7 @@ export function Composer(
 
   const sendButton = el(
     'button',
-    { class: 'send-button', title: 'Send', disabled: true, on: { click: () => submit() } },
+    { class: 'send-button', title: '发送', disabled: true, on: { click: () => submit() } },
     icon(ICONS.send, 16),
   );
 
@@ -71,7 +71,7 @@ export function Composer(
       { class: 'composer-box' },
       el(
         'button',
-        { class: 'icon-button', title: 'Attach a file', on: { click: () => fileInput.click() } },
+        { class: 'icon-button', title: '添加附件', on: { click: () => fileInput.click() } },
         icon(ICONS.paperclip, 17),
       ),
       input,
@@ -79,7 +79,7 @@ export function Composer(
         'button',
         {
           class: 'icon-button',
-          title: 'Emoji',
+          title: '表情',
           on: {
             click: (ev: Event) =>
               openEmojiPicker({
@@ -93,7 +93,7 @@ export function Composer(
       sendButton,
       fileInput,
     ),
-    el('div', { class: 'composer-hint', text: 'Enter to send · Shift+Enter for a new line' }),
+    el('div', { class: 'composer-hint', text: 'Enter 发送 · Shift+Enter 换行' }),
   );
 
   // -- Autosizing ---------------------------------------------------------
@@ -120,7 +120,7 @@ export function Composer(
   });
 
   effect(() => {
-    input.placeholder = opts.placeholder?.() ?? 'Message';
+    input.placeholder = opts.placeholder?.() ?? '输入消息';
   });
 
   // -- Sending ------------------------------------------------------------
@@ -213,7 +213,7 @@ export function Composer(
         'div',
         { class: 'staged uploading' },
         el('span', { text: file.name }),
-        el('span', { class: 'staged-progress', text: 'Uploading…' }),
+        el('span', { class: 'staged-progress', text: '上传中…' }),
       );
       attachmentBar.hidden = false;
       attachmentBar.appendChild(placeholder);
@@ -228,7 +228,7 @@ export function Composer(
           el('span', { text: file.name }),
           el('span', {
             class: 'staged-progress',
-            text: err instanceof Error ? err.message : 'Upload failed',
+            text: err instanceof Error ? err.message : '上传失败',
           }),
         ]);
       }
@@ -248,7 +248,7 @@ export function Composer(
           el('button', {
             class: 'staged-remove',
             text: '×',
-            title: 'Remove',
+            title: '移除',
             on: {
               click: () => {
                 const at = staged.indexOf(a);

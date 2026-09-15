@@ -4,6 +4,7 @@
  */
 
 import { mount } from './app.ts';
+import { siteName } from './brand.ts';
 import { applyTheme, readPreference, watchSystemTheme } from './theme.ts';
 
 // `theme-boot.ts` already stamped the document before first paint. Re-apply
@@ -35,5 +36,5 @@ try {
   // A crash during boot leaves a blank page, which is the least debuggable
   // possible outcome. Say something.
   console.error('failed to start', err);
-  root.textContent = 'TensorChat failed to start. Check the console for details.';
+  root.textContent = `${siteName()} 启动失败，请查看浏览器控制台。`;
 }

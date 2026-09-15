@@ -9,6 +9,7 @@
  */
 
 import { ICONS, el, icon, initials, avatarHue, replace } from '../dom.ts';
+import { siteName } from '../brand.ts';
 import { effect } from '../signals.ts';
 import type { Channel, Id } from '../protocol.ts';
 import type { Store } from '../store.ts';
@@ -23,12 +24,12 @@ export type SidebarActions = {
 };
 
 export function Sidebar(store: Store, actions: SidebarActions): HTMLElement {
-  const root = el('nav', { class: 'sidebar', aria: { label: 'Channels' } });
+  const root = el('nav', { class: 'sidebar', aria: { label: '频道' } });
 
   const header = el(
     'div',
     { class: 'sidebar-header' },
-    el('span', { class: 'workspace-name', text: 'TensorChat' }),
+    el('span', { class: 'workspace-name', text: siteName() }),
     connectionDot(store),
   );
 
@@ -55,17 +56,17 @@ export function Sidebar(store: Store, actions: SidebarActions): HTMLElement {
         'button',
         { class: 'channel-row shortcut-row', on: { click: actions.openSaved } },
         icon(ICONS.bookmark, 15),
-        el('span', { class: 'channel-name', text: 'Saved' }),
+        el('span', { class: 'channel-name', text: '收藏' }),
       ),
-      section('Channels', ICONS.plus, actions.createChannel, [
+      section('频道', ICONS.plus, actions.createChannel, [
         ...named.map((c) => channelRow(store, c, current, actions.open)),
         el('button', {
           class: 'channel-row channel-row-action',
-          text: 'Browse channels',
+          text: '浏览频道',
           on: { click: actions.browseChannels },
         }),
       ]),
-      section('Direct messages', ICONS.plus, actions.newDm, [
+      section('私信', ICONS.plus, actions.newDm, [
         ...direct.map((c) => channelRow(store, c, current, actions.open)),
       ]),
     ]);
@@ -80,7 +81,7 @@ export function Sidebar(store: Store, actions: SidebarActions): HTMLElement {
             {
               class: 'me-card',
               on: { click: actions.openPreferences },
-              title: 'Preferences',
+              title: '偏好设置',
             },
             avatar(me.id, me.n || me.h, 28),
             el(
@@ -112,7 +113,7 @@ function section(
       el('span', { class: 'section-title', text: title }),
       el(
         'button',
-        { class: 'icon-button', title: `Add ${title.toLowerCase()}`, on: { click: onAdd } },
+        { class: 'icon-button', title: `添加${title}`, on: { click: onAdd } },
         icon(addIcon, 14),
       ),
     ),
@@ -186,10 +187,10 @@ function connectionDot(store: Store): HTMLElement {
     dot.className = `conn-dot conn-${state}`;
     dot.title =
       state === 'open'
-        ? 'Connected'
+        ? '已连接'
         : state === 'connecting'
-          ? 'Connecting…'
-          : 'Offline — reconnecting';
+          ? '连接中…'
+          : '离线，正在重连';
   });
   return dot;
 }

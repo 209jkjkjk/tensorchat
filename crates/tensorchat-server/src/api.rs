@@ -29,6 +29,7 @@ use crate::state::{AdminAuth, Auth, Shared};
 pub fn routes() -> Router<Shared> {
     Router::new()
         .route("/api/register", post(register))
+        .route("/api/config", get(public_config))
         .route("/api/login", post(login))
         .route("/api/logout", post(logout))
         .route("/api/me", get(me).patch(update_me))
@@ -100,6 +101,19 @@ pub fn routes() -> Router<Shared> {
 // only answer that distinguishes them.
 
 // ---------------------------------------------------------------- auth
+
+/// The small, deliberately public subset of server configuration the browser
+/// needs before anyone signs in.
+#[derive(Serialize)]
+pub struct PublicConfig {
+    site_name: String,
+}
+
+async fn public_config(State(st): State<Shared>) -> Json<PublicConfig> {
+    Json(PublicConfig {
+        site_name: st.cfg.site_name.clone(),
+    })
+}
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]

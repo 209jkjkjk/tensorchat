@@ -14,6 +14,7 @@
  */
 
 import type { Id, ServerFrame } from './protocol.ts';
+import { siteName } from './brand.ts';
 import type { Store } from './store.ts';
 
 const PREF_KEY = 'tc_notifications';
@@ -85,7 +86,7 @@ export function createNotifier(store: Store, openChannel: (channel: Id) => void)
       ? channel.k === 'public'
         ? `#${store.channelTitle(channel)}`
         : store.channelTitle(channel)
-      : 'TensorChat';
+      : siteName();
 
     try {
       const note = new Notification(title, {

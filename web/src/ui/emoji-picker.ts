@@ -36,13 +36,13 @@ export function closeEmojiPicker(): void {
 function createPicker(): Picker {
   const search = el('input', {
     class: 'emoji-search',
-    placeholder: 'Search emoji…',
+    placeholder: '搜索表情…',
     'aria-label': 'Search emoji',
   }) as HTMLInputElement;
   const grid = el('div', { class: 'emoji-grid' });
   const root = el(
     'div',
-    { class: 'emoji-picker', hidden: true, role: 'dialog', aria: { label: 'Emoji' } },
+    { class: 'emoji-picker', hidden: true, role: 'dialog', aria: { label: '表情' } },
     search,
     grid,
   );
@@ -74,7 +74,7 @@ function createPicker(): Picker {
       replace(
         grid,
         shown.length === 0
-          ? [el('div', { class: 'empty', text: 'No emoji match that.' })]
+          ? [el('div', { class: 'empty', text: '没有匹配的表情。' })]
           : shown.map(button),
       );
       return;

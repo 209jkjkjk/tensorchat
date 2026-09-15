@@ -29,7 +29,7 @@ function dialog(title: string, ...content: (Node | null)[]): HTMLDialogElement {
         el('button', {
           class: 'icon-button',
           text: '×',
-          title: 'Close',
+          title: '关闭',
           on: { click: () => d.close() },
         }),
       ),
@@ -61,22 +61,22 @@ export function createChannelDialog(onCreated: (c: Channel) => void): void {
   }) as HTMLInputElement;
   const topic = el('input', {
     class: 'modal-input',
-    placeholder: 'Topic (optional)',
-    'aria-label': 'Topic',
+    placeholder: '频道主题（可选）',
+    'aria-label': '频道主题',
   }) as HTMLInputElement;
   const isPrivate = el('input', { type: 'checkbox' }) as HTMLInputElement;
   const error = errorLine();
-  const submit = el('button', { class: 'modal-submit', text: 'Create' }) as HTMLButtonElement;
+  const submit = el('button', { class: 'modal-submit', text: '创建' }) as HTMLButtonElement;
 
   const d = dialog(
-    'Create a channel',
+    '创建频道',
     el('p', {
       class: 'modal-hint',
-      text: 'Names may include spaces, Unicode characters and emoji.',
+      text: '频道名可包含空格、Unicode 字符和表情。',
     }),
     name,
     topic,
-    el('label', { class: 'modal-check' }, isPrivate, el('span', { text: 'Make private' })),
+    el('label', { class: 'modal-check' }, isPrivate, el('span', { text: '设为私密频道' })),
     error,
     submit,
   );
@@ -103,14 +103,14 @@ export function createChannelDialog(onCreated: (c: Channel) => void): void {
 
 export function browseChannelsDialog(store: Store, onJoin: (c: Channel) => void): void {
   const list = el('div', { class: 'modal-list' });
-  const d = dialog('Browse channels', list);
+  const d = dialog('浏览频道', list);
 
   void api
     .browseChannels()
     .then((channels) => {
       const mine = store.channels();
       if (channels.length === 0) {
-        replace(list, [el('div', { class: 'empty', text: 'No public channels yet.' })]);
+        replace(list, [el('div', { class: 'empty', text: '还没有公开频道。' })]);
         return;
       }
       replace(
@@ -128,7 +128,7 @@ export function browseChannelsDialog(store: Store, onJoin: (c: Channel) => void)
             ),
             el('button', {
               class: 'browse-join',
-              text: joined ? 'Joined' : 'Join',
+              text: joined ? '已加入' : '加入',
               disabled: joined,
               on: {
                 click: async (ev: Event) => {
@@ -147,7 +147,7 @@ export function browseChannelsDialog(store: Store, onJoin: (c: Channel) => void)
         }),
       );
     })
-    .catch(() => replace(list, [el('div', { class: 'empty', text: 'Could not load channels.' })]));
+    .catch(() => replace(list, [el('div', { class: 'empty', text: '无法加载频道。' })]));
 }
 
 export function newDmDialog(store: Store, onOpened: (c: Channel) => void): void {
