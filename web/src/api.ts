@@ -90,7 +90,7 @@ type Session = { token: string; user: User };
  * issuer, the client id, or anything else about the provider.
  */
 export type AuthProviders = { oidc: { label: string } | null };
-export type PublicConfig = { site_name: string };
+export type PublicConfig = { site_name: string; retention_label: string | null };
 
 export const api = {
   /** The unauthenticated branding the server chooses for this workspace. */

@@ -20,6 +20,7 @@ import { ICONS, el, formatDayLabel, formatFullTime, formatSize, formatTime, icon
 import { effect, signal } from '../signals.ts';
 import { VirtualList } from '../virtual-list.ts';
 import { fileUrl } from '../api.ts';
+import { retentionLabel } from '../brand.ts';
 import { idToDate } from '../protocol.ts';
 import { isEmojiOnly, renderBody } from '../richtext.ts';
 import type { Attachment, Id, Message } from '../protocol.ts';
@@ -316,7 +317,7 @@ function renderRow(store: Store, actions: MessageActions, row: Row): HTMLElement
   if (row.kind === 'retention') {
     return el('div', {
       class: 'day-sep',
-      text: `此前的历史消息已于 ${new Date(row.cleanedAt).toLocaleString()} 清理（超过保留期）。`,
+      text: `此前的历史消息已于 ${new Date(row.cleanedAt).toLocaleString()} 自动清理（超过保存时间 ${retentionLabel()}）`,
     });
   }
   if (row.kind === 'pending') {

@@ -107,12 +107,24 @@ pub fn routes() -> Router<Shared> {
 #[derive(Serialize)]
 pub struct PublicConfig {
     site_name: String,
+    retention_label: Option<String>,
 }
 
 async fn public_config(State(st): State<Shared>) -> Json<PublicConfig> {
     Json(PublicConfig {
         site_name: st.cfg.site_name.clone(),
+        retention_label: st.cfg.retention_ms.map(format_retention),
     })
+}
+
+fn format_retention(ms: u64) -> String {
+    if ms.is_multiple_of(86_400_000) {
+        format!("{}d", ms / 86_400_000)
+    } else if ms.is_multiple_of(3_600_000) {
+        format!("{}h", ms / 3_600_000)
+    } else {
+        format!("{}m", ms / 60_000)
+    }
 }
 
 #[derive(Deserialize)]

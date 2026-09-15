@@ -7,7 +7,7 @@
 import { ICONS, el, icon, replace } from './dom.ts';
 import { effect } from './signals.ts';
 import { api, setToken } from './api.ts';
-import { setSiteName, siteName } from './brand.ts';
+import { setRetentionLabel, setSiteName, siteName } from './brand.ts';
 import { clearAllDrafts } from './drafts.ts';
 import { Connection } from './ws.ts';
 import { store } from './store.ts';
@@ -37,7 +37,10 @@ export function mount(root: HTMLElement): void {
   // rendering anything. A failed request keeps the build-time default usable.
   void api
     .publicConfig()
-    .then((config) => setSiteName(config.site_name))
+    .then((config) => {
+      setSiteName(config.site_name);
+      setRetentionLabel(config.retention_label);
+    })
     .catch(() => undefined)
     .finally(() => mountApp(root));
 }
