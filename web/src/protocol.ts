@@ -36,6 +36,7 @@ export type Channel = {
   t?: string; // topic
   cb: Id; // created by
   arc?: boolean; // archived
+  ret?: { at: number; before: Id }; // older history was removed
   m?: Id[]; // members, populated for dm/group only
   last?: Id; // newest message id
 };
@@ -139,6 +140,7 @@ export type ServerFrame =
   | { presence: { u: Id; p: Presence } }
   | { read: { rs: ReadState } }
   | { chan: { c: Channel } }
+  | { chan_del: { ch: Id } }
   | { member: { ch: Id; u: Id; j: boolean } }
   | { user_upd: { u: User } }
   | { pong: { t: number } }

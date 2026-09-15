@@ -77,6 +77,9 @@ pub struct Channel {
     pub created_by: Id,
     #[serde(rename = "arc", default, skip_serializing_if = "is_false")]
     pub archived: bool,
+    /// A single, updated marker for history removed by the retention policy.
+    #[serde(rename = "ret", default, skip_serializing_if = "Option::is_none")]
+    pub retention: Option<RetentionNotice>,
     /// Members of DMs/groups; empty for named channels, whose membership is
     /// fetched on demand (it can be thousands of rows).
     #[serde(rename = "m", default, skip_serializing_if = "Vec::is_empty")]
@@ -84,6 +87,15 @@ pub struct Channel {
     /// Newest message in the channel, for unread math and sorting the sidebar.
     #[serde(rename = "last", default, skip_serializing_if = "is_zero_id")]
     pub last_message: Id,
+}
+
+/// Records that older history in a still-active channel was removed.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RetentionNotice {
+    #[serde(rename = "at")]
+    pub cleaned_at: u64,
+    #[serde(rename = "before")]
+    pub before: Id,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

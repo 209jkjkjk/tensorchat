@@ -37,6 +37,7 @@ mod invites;
 mod messages;
 mod pins;
 mod push;
+mod retention;
 mod saved;
 mod search;
 mod tokens;
@@ -47,13 +48,14 @@ pub use invites::{Invite, NewInvite};
 pub use messages::{HistoryPage, NewMessage};
 pub use pins::MAX_PINS_PER_CHANNEL;
 pub use push::{MAX_NOTIFICATIONS, NotificationItem, PushSubscription};
+pub use retention::RetentionPurge;
 pub use saved::MAX_SAVED_PAGE;
 pub use search::SearchQuery;
 pub use tokens::ApiToken;
 pub use users::OidcLogin;
 
 /// Schema version embedded in the database via `PRAGMA user_version`.
-const SCHEMA_VERSION: i32 = 10;
+const SCHEMA_VERSION: i32 = 11;
 
 /// Incremental upgrades, each paired with the version it produces.
 ///
@@ -84,6 +86,7 @@ const MIGRATIONS: &[(i32, &str)] = &[
         include_str!("migrations/009_invite_creator_optional.sql"),
     ),
     (10, include_str!("migrations/010_oidc_identities.sql")),
+    (11, include_str!("migrations/011_retention.sql")),
 ];
 
 pub type Result<T> = std::result::Result<T, Error>;

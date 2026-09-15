@@ -461,6 +461,18 @@ export class Store {
       return;
     }
 
+    if ('chan_del' in frame) {
+      const channel = frame.chan_del.ch;
+      this.channels.update((prev) => {
+        const next = new Map(prev);
+        next.delete(channel);
+        return next;
+      });
+      this.logs.delete(channel);
+      if (this.currentChannel() === channel) this.currentChannel.set(null);
+      return;
+    }
+
     if ('member' in frame) {
       const mem = frame.member;
       const meId = this.me()?.id;

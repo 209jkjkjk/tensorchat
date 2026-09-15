@@ -21,8 +21,8 @@ pub mod text;
 
 pub use id::{Id, IdGen};
 pub use model::{
-    Attachment, Channel, ChannelKind, Message, Presence, ReactionSummary, ReadState, SearchHit,
-    User,
+    Attachment, Channel, ChannelKind, Message, Presence, ReactionSummary, ReadState,
+    RetentionNotice, SearchHit, User,
 };
 pub use proto::{ClientFrame, ErrCode, PROTOCOL_VERSION, ServerFrame};
 

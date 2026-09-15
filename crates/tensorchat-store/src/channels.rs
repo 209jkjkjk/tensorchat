@@ -1,7 +1,7 @@
 //! Channels, membership, and read state.
 
 use rusqlite::{OptionalExtension, Row, TransactionBehavior, params};
-use tensorchat_core::{Channel, ChannelKind, Id, ReadState};
+use tensorchat_core::{Channel, ChannelKind, Id, ReadState, RetentionNotice};
 
 use crate::{Error, Result, Store, from_sql, to_sql};
 
@@ -10,7 +10,8 @@ use crate::{Error, Result, Store, from_sql, to_sql};
 /// bounds the cost of a badge refresh on a channel with a huge backlog.
 pub const UNREAD_CAP: u32 = 99;
 
-const CHAN_COLS: &str = "id, kind, name, topic, created_by, archived, last_message";
+const CHAN_COLS: &str =
+    "id, kind, name, topic, created_by, archived, last_message, retention_at, retention_before";
 
 fn map_channel(row: &Row<'_>) -> rusqlite::Result<Channel> {
     Ok(Channel {
@@ -20,6 +21,12 @@ fn map_channel(row: &Row<'_>) -> rusqlite::Result<Channel> {
         topic: row.get(3)?,
         created_by: from_sql(row.get(4)?),
         archived: row.get(5)?,
+        retention: row
+            .get::<_, Option<i64>>(7)?
+            .map(|cleaned_at| RetentionNotice {
+                cleaned_at: cleaned_at as u64,
+                before: from_sql(row.get::<_, i64>(8).unwrap_or(0)),
+            }),
         members: Vec::new(),
         last_message: from_sql(row.get(6)?),
     })
@@ -125,6 +132,7 @@ impl Store {
             topic: spec.topic.to_string(),
             created_by: spec.created_by,
             archived: false,
+            retention: None,
             members: if spec.kind.is_direct() {
                 members
             } else {
@@ -231,7 +239,8 @@ impl Store {
     pub fn channels_for_user(&self, user: Id) -> Result<Vec<Channel>> {
         let conn = self.conn()?;
         let mut stmt = conn.prepare_cached(
-            "SELECT c.id, c.kind, c.name, c.topic, c.created_by, c.archived, c.last_message \
+            "SELECT c.id, c.kind, c.name, c.topic, c.created_by, c.archived, c.last_message, \
+                    c.retention_at, c.retention_before \
              FROM members m JOIN channels c ON c.id = m.channel_id \
              WHERE m.user_id = ? ORDER BY c.last_message DESC",
         )?;

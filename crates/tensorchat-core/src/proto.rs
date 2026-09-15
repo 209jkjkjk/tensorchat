@@ -199,6 +199,11 @@ pub enum ServerFrame {
         #[serde(rename = "c")]
         channel: Channel,
     },
+    /// A retention pass permanently removed this conversation.
+    ChanDel {
+        #[serde(rename = "ch")]
+        channel: Id,
+    },
     /// Membership delta. `join = false` means left/removed.
     Member {
         #[serde(rename = "ch")]
@@ -309,6 +314,7 @@ mod tests {
                     topic: String::new(),
                     created_by: Id(7),
                     archived: false,
+                    retention: None,
                     members: vec![],
                     last_message: Id::ZERO,
                 },

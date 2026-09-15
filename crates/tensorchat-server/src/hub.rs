@@ -218,6 +218,11 @@ impl Hub {
         }
     }
 
+    /// Drop all subscriptions after a channel itself has been deleted.
+    pub fn unsubscribe_channel(&self, channel: Id) {
+        self.channel_subs.remove(&channel);
+    }
+
     /// Encode a frame once. Callers that fan out to several destinations should
     /// encode here and pass the result around, rather than re-encoding.
     pub fn encode(&self, frame: &ServerFrame) -> Encoded {

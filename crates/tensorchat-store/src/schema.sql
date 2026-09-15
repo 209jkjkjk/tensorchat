@@ -119,6 +119,11 @@ CREATE TABLE channels (
     created_by   INTEGER NOT NULL REFERENCES users (id),
     created_at   INTEGER NOT NULL,
     archived     INTEGER NOT NULL DEFAULT 0,
+    -- A single marker for history removed by the retention policy.  It does
+    -- not participate in last_message, so housekeeping cannot keep a channel
+    -- alive merely by recording that it cleaned it.
+    retention_at     INTEGER,
+    retention_before INTEGER,
     -- Denormalized newest message id. Sorting the sidebar and computing
     -- "has anything happened here" are the two most frequent reads in the
     -- product; without this they would each be a correlated subquery over the
@@ -233,10 +238,18 @@ CREATE TABLE attachments (
     -- Path relative to the configured blob root. Bytes live on the filesystem,
     -- not in SQLite: streaming a file to a socket should not go through the
     -- database's page cache.
-    path       TEXT    NOT NULL
+    path       TEXT    NOT NULL,
+    created_at INTEGER NOT NULL DEFAULT 0
 ) STRICT;
 
 CREATE INDEX attachments_message ON attachments (message_id) WHERE message_id IS NOT NULL;
+
+-- Database deletion and filesystem deletion cannot be one transaction. Queue
+-- relative blob paths before deleting their rows; the server retries a queued
+-- unlink until it succeeds.
+CREATE TABLE blob_deletions (
+    path TEXT PRIMARY KEY
+) STRICT, WITHOUT ROWID;
 
 -- Web Push subscriptions. Only the endpoint is kept: the `p256dh`/`auth` keys
 -- exist to encrypt a payload, and this server sends none — the push is an empty

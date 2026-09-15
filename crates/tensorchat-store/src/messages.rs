@@ -11,7 +11,7 @@
 use std::collections::HashMap;
 
 use rusqlite::{OptionalExtension, Row, TransactionBehavior, params, types::Value};
-use tensorchat_core::{Attachment, Id, Message, ReactionSummary};
+use tensorchat_core::{Attachment, Id, Message, ReactionSummary, now_ms};
 
 use crate::{Error, Result, Store, from_sql, pack_ids, to_sql, unpack_ids};
 
@@ -591,8 +591,8 @@ impl Store {
     ) -> Result<Attachment> {
         let conn = self.conn()?;
         conn.prepare_cached(
-            "INSERT INTO attachments (id, owner_id, name, mime, size, width, height, path) \
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO attachments (id, owner_id, name, mime, size, width, height, path, created_at) \
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )?
         .execute(params![
             to_sql(id),
@@ -603,6 +603,7 @@ impl Store {
             dims.map(|d| d.0 as i64),
             dims.map(|d| d.1 as i64),
             path,
+            now_ms() as i64,
         ])?;
         Ok(Attachment {
             id,

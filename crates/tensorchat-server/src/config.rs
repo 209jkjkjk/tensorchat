@@ -21,6 +21,9 @@ pub struct Config {
     /// Distinguishes ID generators when several instances share a database.
     pub node_id: u16,
     pub max_upload_bytes: usize,
+    /// `None` disables automatic retention; otherwise data older than this is
+    /// removed by maintenance.
+    pub retention_ms: Option<u64>,
     /// When false, `/api/register` is closed and accounts are provisioned by
     /// an operator. Open by default so a fresh install is usable immediately.
     pub open_registration: bool,
@@ -107,6 +110,7 @@ impl Default for Config {
             web_dir: PathBuf::from("web/dist"),
             node_id: 0,
             max_upload_bytes: 25 * 1024 * 1024,
+            retention_ms: Some(7 * 24 * 60 * 60 * 1000),
             open_registration: true,
             permissive_cors: false,
             auth_burst: 10.0,
@@ -150,6 +154,9 @@ impl Config {
         }
         if let Ok(v) = std::env::var("TC_MAX_UPLOAD") {
             c.max_upload_bytes = v.parse().map_err(|e| format!("TC_MAX_UPLOAD: {e}"))?;
+        }
+        if let Ok(v) = std::env::var("TC_RETENTION") {
+            c.retention_ms = parse_retention(&v)?;
         }
         if let Ok(v) = std::env::var("TC_OPEN_REGISTRATION") {
             c.open_registration =
@@ -287,6 +294,32 @@ fn parse_bool(v: &str) -> Option<bool> {
     }
 }
 
+/// `0` disables retention. Positive durations use minute, hour, or day units,
+/// so `1m` makes a safe short manual test possible.
+fn parse_retention(raw: &str) -> Result<Option<u64>, String> {
+    let v = raw.trim().to_ascii_lowercase();
+    if v == "0" {
+        return Ok(None);
+    }
+    let (number, unit) = v.split_at(v.len().saturating_sub(1));
+    let factor = match unit {
+        "m" => 60_000,
+        "h" => 3_600_000,
+        "d" => 86_400_000,
+        _ => {
+            return Err("TC_RETENTION: use 0 or a positive duration such as 1m, 12h, 7d".into());
+        }
+    };
+    let amount: u64 = number
+        .parse()
+        .map_err(|_| "TC_RETENTION: use 0 or a positive duration such as 1m, 12h, 7d")?;
+    let ms = amount
+        .checked_mul(factor)
+        .filter(|v| *v > 0)
+        .ok_or("TC_RETENTION: duration is too large or zero")?;
+    Ok(Some(ms))
+}
+
 /// Validate an operator-supplied product name before it reaches a browser.
 fn parse_site_name(raw: &str) -> Result<String, String> {
     let name = raw.trim();
@@ -399,5 +432,14 @@ mod tests {
         assert!(parse_site_name("  ").is_err());
         assert!(parse_site_name("chat\nname").is_err());
         assert!(parse_site_name(&"界".repeat(81)).is_err());
+    }
+
+    #[test]
+    fn retention_accepts_operator_friendly_durations() {
+        assert_eq!(parse_retention("1m").unwrap(), Some(60_000));
+        assert_eq!(parse_retention("7d").unwrap(), Some(604_800_000));
+        assert_eq!(parse_retention("0").unwrap(), None);
+        assert!(parse_retention("60").is_err());
+        assert!(parse_retention("0m").is_err());
     }
 }

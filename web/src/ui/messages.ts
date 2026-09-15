@@ -33,6 +33,7 @@ const GROUP_WINDOW_MS = 5 * 60 * 1000;
 /** Rows are a mix of messages, day separators, and pending echoes. */
 type Row =
   | { kind: 'day'; key: string; date: Date }
+  | { kind: 'retention'; key: string; cleanedAt: number }
   | { kind: 'message'; key: string; m: Message; grouped: boolean }
   | { kind: 'pending'; key: string; body: string; failed: boolean };
 
@@ -147,6 +148,10 @@ export function MessageList(store: Store, actions: MessageActions): HTMLElement 
 /** Flatten a message log into renderable rows, inserting day separators. */
 function buildRows(store: Store, channel: Id, messages: Message[]): Row[] {
   const rows: Row[] = [];
+  const retention = store.channels().get(channel)?.ret;
+  if (retention) {
+    rows.push({ kind: 'retention', key: `retention-${retention.at}`, cleanedAt: retention.at });
+  }
   let previous: Message | undefined;
   let previousDate: Date | undefined;
 
@@ -307,6 +312,12 @@ function renderRow(store: Store, actions: MessageActions, row: Row): HTMLElement
       { class: 'day-sep' },
       el('span', { class: 'day-label', text: formatDayLabel(row.date) }),
     );
+  }
+  if (row.kind === 'retention') {
+    return el('div', {
+      class: 'day-sep',
+      text: `此前的历史消息已于 ${new Date(row.cleanedAt).toLocaleString()} 清理（超过保留期）。`,
+    });
   }
   if (row.kind === 'pending') {
     return el(

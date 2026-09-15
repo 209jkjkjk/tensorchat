@@ -110,35 +110,88 @@ async fn serve(cfg: Config) -> Result<(), Box<dyn std::error::Error>> {
 /// so this only governs when the row stops taking up space.
 const INVITE_RETENTION_MS: u64 = 30 * 24 * 60 * 60 * 1000;
 
-/// Periodic housekeeping: expire sessions and invites, checkpoint the WAL,
-/// refresh planner statistics.
+/// Periodic housekeeping: expire sessions and invites, apply retention,
+/// checkpoint the WAL, and refresh planner statistics.
 fn spawn_maintenance(st: Shared) {
     tokio::spawn(async move {
         let mut tick = tokio::time::interval(Duration::from_secs(3600));
         tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
-        // The first tick fires immediately; skip it so startup is not delayed.
+        // Run immediately: an operator restarting to apply a shorter period
+        // should not have to wait an hour before it takes effect.
+        run_maintenance(&st).await;
         tick.tick().await;
         loop {
             tick.tick().await;
-            let now = tensorchat_core::now_ms();
-            let r = st
-                .db(move |s| {
-                    let purged = s.purge_expired_sessions(now)?;
-                    // Saturating, so a clock before the epoch cannot wrap the
-                    // cutoff into the far future and delete live invites.
-                    let invites =
-                        s.purge_expired_invites(now.saturating_sub(INVITE_RETENTION_MS))?;
-                    s.maintenance()?;
-                    Ok(purged + invites)
-                })
-                .await;
-            match r {
-                Ok(n) if n > 0 => tracing::info!(purged = n, "maintenance: expired rows"),
-                Ok(_) => tracing::debug!("maintenance complete"),
-                Err(e) => tracing::warn!(error = %e, "maintenance failed"),
-            }
+            run_maintenance(&st).await;
         }
     });
+}
+
+async fn run_maintenance(st: &Shared) {
+    let now = tensorchat_core::now_ms();
+    let retention = st.cfg.retention_ms;
+    let r = st
+        .db(move |s| {
+            let purged = s.purge_expired_sessions(now)?;
+            let invites = s.purge_expired_invites(now.saturating_sub(INVITE_RETENTION_MS))?;
+            let retention = match retention {
+                Some(age) => Some(s.purge_retention(
+                    tensorchat_core::Id::floor_for_ms(now.saturating_sub(age)),
+                    now.saturating_sub(age),
+                    now,
+                )?),
+                None => None,
+            };
+            s.maintenance()?;
+            Ok((purged + invites, retention))
+        })
+        .await;
+    let Ok((expired, retention)) = r else {
+        tracing::warn!("maintenance failed");
+        return;
+    };
+    if let Some(purge) = retention {
+        for channel in purge.channels {
+            st.hub
+                .broadcast_frame(channel, &tensorchat_core::ServerFrame::ChanDel { channel });
+            st.hub.unsubscribe_channel(channel);
+        }
+        for channel in purge.pruned_channels {
+            if let Ok(channel) = st.db(move |s| s.channel(channel)).await {
+                st.hub
+                    .broadcast_frame(channel.id, &tensorchat_core::ServerFrame::Chan { channel });
+            }
+        }
+    }
+    remove_queued_blobs(st).await;
+    if expired > 0 {
+        tracing::info!(purged = expired, "maintenance: expired rows");
+    }
+}
+
+async fn remove_queued_blobs(st: &Shared) {
+    let Ok(paths) = st.db(|s| s.pending_blob_deletions(1000)).await else {
+        return;
+    };
+    for rel in paths {
+        // The upload endpoint creates decimal file names. Never turn a corrupt
+        // database row into filesystem traversal during cleanup.
+        if rel.is_empty() || rel.contains(['/', '\\', '.']) {
+            continue;
+        }
+        let path = st.cfg.blob_dir.join(&rel);
+        match tokio::fs::remove_file(path).await {
+            Ok(()) => {
+                let done = rel.clone();
+                let _ = st.db(move |s| s.acknowledge_blob_deletion(&done)).await;
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                let done = rel.clone();
+                let _ = st.db(move |s| s.acknowledge_blob_deletion(&done)).await;
+            }
+            Err(e) => tracing::warn!(path = %rel, error = %e, "blob deletion will retry"),
+        }
+    }
 }
 
 /// Resolve on SIGINT or SIGTERM so in-flight requests finish before exit.
