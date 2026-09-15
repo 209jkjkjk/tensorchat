@@ -735,6 +735,11 @@ ul, ol {
   flex: none;
 }
 
+.mobile-menu-button,
+.mobile-sidebar-close {
+  display: none;
+}
+
 
 /* ── 8. Message list ───────────────────────────────────────────────── */
 
@@ -1814,6 +1819,12 @@ mark {
   letter-spacing: -0.005em;
 }
 
+.pane-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
 .thread-body {
   flex: 1;
   min-height: 0;
@@ -2790,6 +2801,36 @@ dialog::backdrop {
     width: 100vw;
   }
 
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 70;
+    width: var(--sidebar-w);
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-lg);
+    transition: transform var(--speed) var(--ease);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .mobile-menu-button,
+  .mobile-sidebar-close {
+    display: inline-grid;
+  }
+
+  .header-main {
+    flex: 1;
+    min-width: 0;
+  }
+
   .search-overlay {
     padding: 4vh 10px 10px;
   }
@@ -2799,15 +2840,21 @@ dialog::backdrop {
   }
 }
 
-/* Coarse pointers have no hover, so hover-revealed affordances would be
-   unreachable. Pin them visible. */
+/* Coarse pointers have no hover. Keep the toolbar out of the way until the
+   reader taps one message; otherwise every historical row would show its
+   actions at once. */
 @media (hover: none) {
-  .message-actions,
   .hover-time {
     opacity: 1;
   }
 
   .message-actions {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .message.mobile-actions-open .message-actions {
+    opacity: 1;
     pointer-events: auto;
   }
 }

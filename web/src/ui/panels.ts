@@ -445,14 +445,20 @@ export function MemberList(store: Store, onOpenDm: (user: Id) => void): HTMLElem
     text: '+',
     hidden: true,
   }) as HTMLButtonElement;
-  const root = el(
+  let root!: HTMLElement;
+  const close = el(
+    'button',
+    { class: 'icon-button', title: '关闭成员列表', on: { click: () => (root.hidden = true) } },
+    icon(ICONS.close, 16),
+  );
+  root = el(
     'aside',
     { class: 'member-pane', hidden: true, aria: { label: '成员' } },
     el(
       'div',
       { class: 'pane-header' },
       el('span', { class: 'pane-title', text: '成员' }),
-      add,
+      el('div', { class: 'pane-header-actions' }, add, close),
     ),
     body,
   );

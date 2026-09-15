@@ -276,8 +276,11 @@ function start(root: HTMLElement): void {
 
   // -- Layout -------------------------------------------------------------
 
-  const sidebar = Sidebar(store, {
+  let sidebar!: HTMLElement;
+  const closeSidebar = () => sidebar.classList.remove('mobile-open');
+  sidebar = Sidebar(store, {
     open: openChannel,
+    close: closeSidebar,
     createChannel: () => createChannelDialog(adoptChannel),
     browseChannels: () => browseChannelsDialog(store, adoptChannel),
     newDm: () => newDmDialog(store, adoptChannel),
@@ -369,6 +372,7 @@ function start(root: HTMLElement): void {
   const search = SearchOverlay(store, (channel, message) => void jumpToMessage(channel, message));
 
   const channelHeader = ChannelHeader(store, {
+    toggleSidebar: () => sidebar.classList.toggle('mobile-open'),
     toggleMembers: () => (memberPane as HTMLElement & { toggle?: () => void }).toggle?.(),
     togglePinned: () => (pinnedPane as HTMLElement & { toggle?: () => void }).toggle?.(),
     toggleMuted: () => {
@@ -499,6 +503,7 @@ function start(root: HTMLElement): void {
 function ChannelHeader(
   store: typeof import('./store.ts').store,
   actions: {
+    toggleSidebar: () => void;
     toggleMembers: () => void;
     togglePinned: () => void;
     toggleMuted: () => void;
@@ -515,6 +520,11 @@ function ChannelHeader(
     const pinCount = id ? store.pinsIn(id).size : 0;
     const muted = id ? store.isMuted(id) : false;
     replace(root, [
+      el(
+        'button',
+        { class: 'icon-button mobile-menu-button', title: '打开频道栏', on: { click: actions.toggleSidebar } },
+        icon(ICONS.menu, 18),
+      ),
       el(
         'div',
         { class: 'header-main' },

@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- 移动端默认隐藏消息操作栏，点按消息时只显示当前消息的操作。
+- 移动端增加频道栏的打开与收起按钮，并为成员列表增加关闭按钮。
+
 - 注册页明确标注用户名不可使用中文，并将显示名称、浏览频道分别改为昵称、加入频道。
 - 附件可单独作为一条消息发送，默认单文件上传上限从 25 MiB 提高至 100 MiB；可通过 `TC_MAX_UPLOAD` 调整。
 

@@ -16,6 +16,7 @@ import type { Store } from '../store.ts';
 
 export type SidebarActions = {
   open: (channel: Id) => void;
+  close: () => void;
   createChannel: () => void;
   browseChannels: () => void;
   newDm: () => void;
@@ -31,6 +32,11 @@ export function Sidebar(store: Store, actions: SidebarActions): HTMLElement {
     { class: 'sidebar-header' },
     el('span', { class: 'workspace-name', text: siteName() }),
     connectionDot(store),
+    el(
+      'button',
+      { class: 'icon-button mobile-sidebar-close', title: '关闭频道栏', on: { click: actions.close } },
+      icon(ICONS.close, 16),
+    ),
   );
 
   const channelList = el('div', { class: 'channel-list' });
@@ -48,6 +54,10 @@ export function Sidebar(store: Store, actions: SidebarActions): HTMLElement {
 
     const named = channels.filter((c) => c.k === 'public' || c.k === 'private');
     const direct = channels.filter((c) => c.k === 'dm' || c.k === 'group');
+    const openAndClose = (id: Id) => {
+      actions.open(id);
+      actions.close();
+    };
 
     replace(channelList, [
       // Above the channels, because saved messages are a cross-channel
@@ -59,7 +69,7 @@ export function Sidebar(store: Store, actions: SidebarActions): HTMLElement {
         el('span', { class: 'channel-name', text: '收藏' }),
       ),
       section('频道', ICONS.plus, actions.createChannel, [
-        ...named.map((c) => channelRow(store, c, current, actions.open)),
+        ...named.map((c) => channelRow(store, c, current, openAndClose)),
         el('button', {
           class: 'channel-row channel-row-action',
           text: '加入频道',
@@ -67,7 +77,7 @@ export function Sidebar(store: Store, actions: SidebarActions): HTMLElement {
         }),
       ]),
       section('私信', ICONS.plus, actions.newDm, [
-        ...direct.map((c) => channelRow(store, c, current, actions.open)),
+        ...direct.map((c) => channelRow(store, c, current, openAndClose)),
       ]),
     ]);
   });

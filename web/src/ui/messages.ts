@@ -197,6 +197,9 @@ function buildRows(store: Store, channel: Id, messages: Message[]): Row[] {
  */
 const editingId = signal<Id | null>(null);
 
+/** The one message whose actions are open on a coarse-pointer device. */
+const mobileActionsId = signal<Id | null>(null);
+
 /**
  * The in-progress edit, held outside the reactive graph on purpose.
  *
@@ -349,6 +352,7 @@ export function renderMessage(
   const mentionsMe = !!(meId && m.mn?.includes(meId));
 
   const pinned = store.isPinned(m.ch, m.id);
+  const mobileActionsOpen = mobileActionsId() === m.id;
 
   const root = el('div', {
     class: [
@@ -357,6 +361,7 @@ export function renderMessage(
       m.del ? 'deleted' : '',
       mentionsMe ? 'mentions-me' : '',
       pinned ? 'pinned' : '',
+      mobileActionsOpen ? 'mobile-actions-open' : '',
       // Flashes once after a jump, so the message you asked for is obvious
       // among its neighbours.
       store.highlight() === m.id ? 'highlighted' : '',
@@ -364,6 +369,14 @@ export function renderMessage(
       .filter(Boolean)
       .join(' '),
     data: { id: m.id },
+    on: {
+      click: (ev: Event) => {
+        if (!isCoarsePointer()) return;
+        const target = ev.target;
+        if (target instanceof Element && target.closest('button, a, input, textarea, select')) return;
+        mobileActionsId.set(mobileActionsId.peek() === m.id ? null : m.id);
+      },
+    },
   });
 
   // The gutter holds either the avatar (first of a group) or a hover timestamp.
@@ -438,6 +451,10 @@ export function renderMessage(
 
   root.append(gutter, main);
   return root;
+}
+
+function isCoarsePointer(): boolean {
+  return typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches;
 }
 
 function attachments(list: Attachment[]): HTMLElement {
