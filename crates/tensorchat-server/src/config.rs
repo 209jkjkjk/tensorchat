@@ -109,7 +109,7 @@ impl Default for Config {
             blob_dir: PathBuf::from("blobs"),
             web_dir: PathBuf::from("web/dist"),
             node_id: 0,
-            max_upload_bytes: 25 * 1024 * 1024,
+            max_upload_bytes: 100 * 1024 * 1024,
             retention_ms: Some(7 * 24 * 60 * 60 * 1000),
             open_registration: true,
             permissive_cors: false,

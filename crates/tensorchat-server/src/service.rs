@@ -62,14 +62,18 @@ pub async fn post_message(
     thread_root: Option<Id>,
     attachments: Vec<Id>,
 ) -> ApiResult<Message> {
-    let Some(clean) = text::clean_body(body).map_err(|e| ApiError::BadRequest(e.into()))? else {
+    let clean = text::clean_body(body).map_err(|e| ApiError::BadRequest(e.into()))?;
+    if clean.is_none() && attachments.is_empty() {
         return Err(ApiError::BadRequest("message is empty".into()));
+    }
+    let mentions = match clean {
+        Some(body) => resolve_mentions(st, channel, body).await?,
+        None => Vec::new(),
     };
-    let mentions = resolve_mentions(st, channel, clean).await?;
 
     let id = st.next_id();
     let author_id = author.id;
-    let body = clean.to_string();
+    let body = clean.unwrap_or_default().to_string();
     let message = st
         .db(move |s| {
             s.insert_message(NewMessage {

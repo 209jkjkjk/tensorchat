@@ -13,6 +13,7 @@ use axum::body::{Body, to_bytes};
 use axum::extract::ConnectInfo;
 use axum::http::{Request, StatusCode, header};
 use serde_json::{Value, json};
+use tensorchat_core::Id;
 use tensorchat_server::{AppState, Config, build_router};
 use tower::ServiceExt;
 
@@ -2131,6 +2132,44 @@ async fn unicode_channel_names_are_accepted_without_normalization() {
 
     assert_eq!(status, StatusCode::OK);
     assert_eq!(channel["n"], name);
+}
+
+#[tokio::test]
+async fn an_attachment_can_be_sent_without_text() {
+    let app = App::new();
+    let (alice, alice_id) = app.account("alice").await;
+    let (_, channel) = app
+        .send(
+            "POST",
+            "/api/channels",
+            Some(&alice),
+            Some(json!({ "name": "files" })),
+        )
+        .await;
+    let attachment = app
+        .store
+        .create_attachment(
+            Id::from(42),
+            alice_id.parse().unwrap(),
+            "photo.png",
+            "image/png",
+            12,
+            None,
+            "42",
+        )
+        .unwrap();
+    let ch = channel["id"].as_str().unwrap();
+    let (status, message) = app
+        .send(
+            "POST",
+            &format!("/api/channels/{ch}/messages"),
+            Some(&alice),
+            Some(json!({ "body": "", "attachments": [attachment.id] })),
+        )
+        .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(message["b"], "");
+    assert_eq!(message["at"].as_array().unwrap().len(), 1);
 }
 
 #[tokio::test]

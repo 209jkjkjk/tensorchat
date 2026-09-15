@@ -169,7 +169,7 @@ All configuration is environment variables. Everything has a working default.
 | `TC_WEB` | `web/dist` | Built frontend to serve. |
 | `TC_SITE_NAME` | `TensorChat` | 产品名称，显示在网页标题、登录页、侧栏和通知中。 |
 | `TC_NODE_ID` | `0` | Distinguishes ID generators if several instances share a database. |
-| `TC_MAX_UPLOAD` | `26214400` | Maximum upload size in bytes. |
+| `TC_MAX_UPLOAD` | `104857600` | Maximum upload size in bytes (100 MiB). |
 | `TC_RETENTION` | `7d` | 自动清理保留期。支持 `m`、`h`、`d`，例如 `1m` 用于测试；设为 `0` 可关闭自动清理。 |
 | `TC_OPEN_REGISTRATION` | `true` | Set `false` to close signups. Invite links still work — see below. |
 | `TC_AUTH_BURST` | `10` | Login/register attempts allowed per client address before throttling. |

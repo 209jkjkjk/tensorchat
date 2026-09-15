@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- 附件可单独作为一条消息发送，默认单文件上传上限从 25 MiB 提高至 100 MiB；可通过 `TC_MAX_UPLOAD` 调整。
+
 - 自动清理默认保留七天：长期无消息的频道会连同记录和附件删除；仍活跃频道只清理过期消息，并保留一条会更新的清理提示。用 `TC_RETENTION=1m` 可测试，`TC_RETENTION=0` 可关闭。
 
 - 私聊和群聊也可从界面归档；归档后从频道列表隐藏，消息记录仍按保留期规则处理。
