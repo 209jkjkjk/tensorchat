@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- 私聊和群聊也可从界面归档；归档后从频道列表隐藏，消息记录仍按保留期规则处理。
+
 - **中文界面与可配置站点名称。** 前端可见文案现使用中文；设置
   `TC_SITE_NAME` 可更改网页标题、登录页、侧栏和通知中显示的名称。
 

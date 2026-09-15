@@ -375,6 +375,17 @@ function start(root: HTMLElement): void {
       // user's other tabs, so there is nothing to fold in by hand.
       void api.muteChannel(channel, !store.isMuted(channel)).catch(() => {});
     },
+    toggleArchived: () => {
+      const id = store.currentChannel();
+      const channel = id ? store.channels().get(id) : undefined;
+      if (!channel) return;
+      const archived = !channel.arc;
+      const question = archived
+        ? `归档“${store.channelTitle(channel)}”后将不能再发送消息，确定继续？`
+        : `确定取消归档“${store.channelTitle(channel)}”？`;
+      if (!confirm(question)) return;
+      void api.updateChannel(channel.id, { archived }).catch(() => {});
+    },
     openSearch: () => search.open(),
   });
 
@@ -488,6 +499,7 @@ function ChannelHeader(
     toggleMembers: () => void;
     togglePinned: () => void;
     toggleMuted: () => void;
+    toggleArchived: () => void;
     openSearch: () => void;
   },
 ): HTMLElement {
@@ -528,7 +540,7 @@ function ChannelHeader(
               'button',
               {
                 class: 'icon-button with-count',
-                title: `${pinCount} pinned`,
+                title: `${pinCount} 条置顶消息`,
                 on: { click: actions.togglePinned },
               },
               icon(ICONS.pin, 17),
@@ -539,8 +551,19 @@ function ChannelHeader(
           ? el(
               'button',
               {
+                class: `icon-button${c.arc ? ' active' : ''}`,
+                title: c.arc ? '取消归档频道' : '归档频道',
+                on: { click: actions.toggleArchived },
+              },
+              icon(ICONS.archive, 17),
+            )
+          : null,
+        c
+          ? el(
+              'button',
+              {
                 class: `icon-button${muted ? ' active' : ''}`,
-                title: muted ? 'Unmute this channel' : 'Mute this channel',
+                title: muted ? '取消静音频道' : '静音频道',
                 on: { click: actions.toggleMuted },
               },
               icon(muted ? ICONS.bellOff : ICONS.bell, 17),

@@ -126,6 +126,7 @@ export function icon(path: string, size = 16): SVGSVGElement {
 }
 
 export const ICONS = {
+  archive: 'M4 5h16v4H4zM6 9h12v11H6zM10 13h4',
   hash: 'M4 9h16M4 15h16M10 3L8 21M16 3l-2 18',
   lock: 'M5 11h14v10H5zM8 11V7a4 4 0 018 0v4',
   search: 'M11 19a8 8 0 100-16 8 8 0 000 16zM21 21l-4.35-4.35',

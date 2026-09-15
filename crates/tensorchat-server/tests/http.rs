@@ -2134,6 +2134,39 @@ async fn unicode_channel_names_are_accepted_without_normalization() {
 }
 
 #[tokio::test]
+async fn an_archived_channel_refuses_new_messages() {
+    let app = App::new();
+    let (alice, _) = app.account("alice").await;
+    let (_, channel) = app
+        .send(
+            "POST",
+            "/api/channels",
+            Some(&alice),
+            Some(json!({ "name": "old-project" })),
+        )
+        .await;
+    let ch = channel["id"].as_str().unwrap();
+    let (status, _) = app
+        .send(
+            "PATCH",
+            &format!("/api/channels/{ch}"),
+            Some(&alice),
+            Some(json!({ "archived": true })),
+        )
+        .await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, _) = app
+        .send(
+            "POST",
+            &format!("/api/channels/{ch}/messages"),
+            Some(&alice),
+            Some(json!({ "body": "too late" })),
+        )
+        .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+}
+
+#[tokio::test]
 async fn security_headers_are_present_on_every_response() {
     let app = App::new();
     let request = Request::builder()

@@ -88,6 +88,17 @@ impl Store {
             return Err(Error::Forbidden);
         }
 
+        // Archiving is a write barrier, not a UI convention. Keep this check
+        // in the same IMMEDIATE transaction as membership and the insert, so a
+        // concurrent archive cannot race a message through.
+        let archived: Option<bool> = tx
+            .prepare_cached("SELECT archived FROM channels WHERE id = ?")?
+            .query_row([to_sql(m.channel_id)], |r| r.get(0))
+            .optional()?;
+        if archived != Some(false) {
+            return Err(Error::Forbidden);
+        }
+
         // A reply's root must be a real, top-level message in this channel.
         // Threads are one level deep by design: replying to a reply attaches
         // to the same root, which keeps rendering and reply counts simple.
