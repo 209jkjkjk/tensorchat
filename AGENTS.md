@@ -29,7 +29,8 @@ describes the pull request route.
   the end. A commit should leave the tree green.
 - **Do not push.** Committing is the agent's job; publishing is the
   maintainer's, and it is theirs to time.
-- **Commit to `main`.** No feature branches for routine work.
+- **Commit to `master`.** Do not commit to `main`; this fork uses `master` for
+  routine work.
 - Write a message that explains *why*, not just what changed. Match the style of
   the existing history.
 - Never force-push, amend or squash unless asked.

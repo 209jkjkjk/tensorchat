@@ -103,7 +103,7 @@ export function createChannelDialog(onCreated: (c: Channel) => void): void {
 
 export function browseChannelsDialog(store: Store, onJoin: (c: Channel) => void): void {
   const list = el('div', { class: 'modal-list' });
-  const d = dialog('浏览频道', list);
+  const d = dialog('加入频道', list);
 
   void api
     .browseChannels()

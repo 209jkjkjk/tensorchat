@@ -58,7 +58,7 @@ export function LoginScreen(onAuthenticated: (user: User) => void): HTMLElement 
   const displayName = el('input', {
     class: 'auth-input',
     type: 'text',
-    placeholder: '显示名称',
+    placeholder: '昵称',
     autocomplete: 'name',
   }) as HTMLInputElement;
 
@@ -100,6 +100,7 @@ export function LoginScreen(onAuthenticated: (user: User) => void): HTMLElement 
 
   function render(): void {
     const registering = mode === 'register';
+    handle.placeholder = registering ? '用户名（不可用中文）' : '用户名';
     password.autocomplete = registering ? 'new-password' : 'current-password';
     submit.textContent = registering ? '创建账号' : '登录';
     toggle.textContent = registering ? '我已有账号' : '创建账号';

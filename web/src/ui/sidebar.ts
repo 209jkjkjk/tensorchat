@@ -62,7 +62,7 @@ export function Sidebar(store: Store, actions: SidebarActions): HTMLElement {
         ...named.map((c) => channelRow(store, c, current, actions.open)),
         el('button', {
           class: 'channel-row channel-row-action',
-          text: '浏览频道',
+          text: '加入频道',
           on: { click: actions.browseChannels },
         }),
       ]),
