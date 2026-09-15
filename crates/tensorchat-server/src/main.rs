@@ -114,7 +114,14 @@ const INVITE_RETENTION_MS: u64 = 30 * 24 * 60 * 60 * 1000;
 /// checkpoint the WAL, and refresh planner statistics.
 fn spawn_maintenance(st: Shared) {
     tokio::spawn(async move {
-        let mut tick = tokio::time::interval(Duration::from_secs(3600));
+        // A seven-day policy needs no more than an hourly pass, while a short
+        // test policy such as `1m` should be observable without a restart.
+        let cadence = st
+            .cfg
+            .retention_ms
+            .map(|age| Duration::from_millis(age.min(Duration::from_secs(3600).as_millis() as u64)))
+            .unwrap_or_else(|| Duration::from_secs(3600));
+        let mut tick = tokio::time::interval(cadence);
         tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
         // Run immediately: an operator restarting to apply a shorter period
         // should not have to wait an hour before it takes effect.
