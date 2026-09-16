@@ -23,6 +23,10 @@ export function inviteFromLocation(hash: string): string | null {
   return m ? decodeURIComponent(m[1]!) : null;
 }
 
+export function passwordsMatch(password: string, confirmation: string): boolean {
+  return password === confirmation;
+}
+
 export function LoginScreen(onAuthenticated: (user: User) => void): HTMLElement {
   const invite = inviteFromLocation(location.hash);
   // An invite link is an instruction to create an account, so open on the
@@ -67,6 +71,14 @@ export function LoginScreen(onAuthenticated: (user: User) => void): HTMLElement 
     type: 'password',
     placeholder: '密码',
     autocomplete: 'current-password',
+    required: 'required',
+  }) as HTMLInputElement;
+
+  const confirmPassword = el('input', {
+    class: 'auth-input',
+    type: 'password',
+    placeholder: '确认密码',
+    autocomplete: 'new-password',
     required: 'required',
   }) as HTMLInputElement;
 
@@ -126,6 +138,7 @@ export function LoginScreen(onAuthenticated: (user: User) => void): HTMLElement 
       handle,
       registering ? displayName : null,
       password,
+      registering ? confirmPassword : null,
       error,
       submit,
       toggle,
@@ -193,6 +206,11 @@ export function LoginScreen(onAuthenticated: (user: User) => void): HTMLElement 
       showError('请输入用户名和密码。');
       return;
     }
+    if (mode === 'register' && !passwordsMatch(p, confirmPassword.value)) {
+      showError('两次输入的密码不一致。');
+      confirmPassword.focus();
+      return;
+    }
 
     busy = true;
     submit.disabled = true;
@@ -217,6 +235,7 @@ export function LoginScreen(onAuthenticated: (user: User) => void): HTMLElement 
       );
       // Never leave a password sitting in the DOM after a failure.
       password.value = '';
+      confirmPassword.value = '';
       password.focus();
     } finally {
       // `render` owns the disabled state now — it also has to account for a
