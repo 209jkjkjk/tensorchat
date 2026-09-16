@@ -90,6 +90,16 @@ export function MessageList(store: Store, actions: MessageActions): HTMLElement 
     }
   });
 
+  // On touch devices the toolbar is opened by tapping a message. A tap
+  // elsewhere is an unambiguous request to dismiss it, including a tap on the
+  // composer or an empty part of the conversation.
+  document.addEventListener('pointerdown', (ev: PointerEvent) => {
+    const target = ev.target;
+    if (!(target instanceof Element) || !target.closest('.message')) {
+      mobileActionsId.set(null);
+    }
+  });
+
   effect(() => {
     const channel = store.currentChannel();
     if (!channel) {
@@ -373,7 +383,12 @@ export function renderMessage(
       click: (ev: Event) => {
         if (!isCoarsePointer()) return;
         const target = ev.target;
-        if (target instanceof Element && target.closest('button, a, input, textarea, select')) return;
+        if (target instanceof Element && target.closest('button, a, input, textarea, select')) {
+          // The action itself has completed; leave the conversation clean
+          // rather than keeping a stale pin/delete toolbar open.
+          mobileActionsId.set(null);
+          return;
+        }
         mobileActionsId.set(mobileActionsId.peek() === m.id ? null : m.id);
       },
     },
