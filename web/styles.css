@@ -781,6 +781,123 @@ ul, ol {
   /* height is set by JS — never declare it here. */
 }
 
+/* First-run workspace state: replace the message viewport until the user
+   joins or creates a channel, so an input with no destination is not shown. */
+.empty-workspace {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0;
+  padding: 32px 24px;
+  overflow-y: auto;
+  text-align: center;
+}
+
+.empty-workspace-icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 18px;
+  border-radius: var(--radius-xl);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+.empty-workspace-title {
+  margin: 0;
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 680;
+  letter-spacing: -0.025em;
+}
+
+.empty-workspace-copy {
+  max-width: 46ch;
+  margin: 8px 0 22px;
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.empty-workspace-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(190px, 1fr));
+  gap: 10px;
+  width: min(100%, 500px);
+}
+
+.empty-workspace-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-1);
+  color: var(--text);
+  text-align: left;
+  transition: background var(--speed) var(--ease), border-color var(--speed) var(--ease),
+    box-shadow var(--speed) var(--ease);
+}
+
+.empty-workspace-action:hover {
+  border-color: var(--accent-line);
+  background: var(--hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.empty-workspace-action:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.empty-workspace-action-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.empty-workspace-action-primary:hover {
+  border-color: var(--accent-hover);
+  background: var(--accent-hover);
+}
+
+.empty-workspace-action-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.empty-workspace-action-label {
+  font-size: var(--text-base);
+  font-weight: 650;
+}
+
+.empty-workspace-action-hint {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.empty-workspace-action-primary .empty-workspace-action-hint {
+  color: var(--on-accent);
+  opacity: 0.78;
+}
+
+.empty-workspace-warning {
+  max-width: 54ch;
+  margin: 22px 0 0;
+  color: var(--danger-text);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
 /* Day separator: a centered label on a hairline. Spacing via padding only. */
 .day-sep {
   display: flex;
@@ -2803,6 +2920,20 @@ dialog::backdrop {
 
   .app {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .empty-workspace {
+    padding: 24px 16px;
+  }
+
+  .empty-workspace-copy {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .empty-workspace-actions {
+    grid-template-columns: 1fr;
+    width: min(100%, 360px);
   }
 
   .sidebar {

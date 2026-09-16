@@ -19,6 +19,7 @@ import { LoginScreen } from './ui/login.ts';
 import { MessageList, beginEdit, cancelEdit, isEditing, type MessageActions } from './ui/messages.ts';
 import { MemberList, PinnedPane, SavedPane, SearchOverlay, ThreadPane } from './ui/panels.ts';
 import { Sidebar } from './ui/sidebar.ts';
+import { EmptyWorkspace } from './ui/empty-state.ts';
 import {
   browseChannelsDialog,
   createChannelDialog,
@@ -303,6 +304,10 @@ function start(root: HTMLElement): void {
   });
 
   const messageList = MessageList(store, messageActions);
+  const emptyWorkspace = EmptyWorkspace({
+    browseChannels: () => browseChannelsDialog(store, adoptChannel),
+    createChannel: () => createChannelDialog(adoptChannel),
+  });
 
   const composer = Composer(store, {
     send: (body, attachments) => {
@@ -409,6 +414,7 @@ function start(root: HTMLElement): void {
         { class: 'main' },
         channelHeader,
         messageList,
+        emptyWorkspace,
         anchorBar,
         typingLine,
         composer,
@@ -435,6 +441,15 @@ function start(root: HTMLElement): void {
   // snapshot arrives. A permalink wins: it is the more specific request, and
   // it is what the person clicking the link actually wanted to see.
   let opened = false;
+  effect(() => {
+    // `me` is populated by the initial Ready frame, so the card cannot flash
+    // while the socket is still loading the workspace snapshot.
+    const empty = store.me() !== null && store.channels().size === 0;
+    messageList.hidden = empty;
+    emptyWorkspace.hidden = !empty;
+    composer.hidden = empty;
+  });
+
   effect(() => {
     const channels = store.sortedChannels();
     if (opened || store.currentChannel() || channels.length === 0) return;

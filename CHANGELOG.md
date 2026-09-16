@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- 无频道的工作区增加首次进入引导，提供加入频道和创建频道入口，并提示聊天记录保留策略。
+
 - 移动端默认隐藏消息操作栏，点按消息时只显示当前消息的操作。
 - 移动端增加频道栏的打开与收起按钮，并为成员列表增加关闭按钮。
 

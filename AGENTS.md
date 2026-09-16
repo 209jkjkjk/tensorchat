@@ -9,6 +9,12 @@ anything.
 ./run-tests.sh
 ```
 
+On Windows PowerShell, use:
+
+```powershell
+.\run-tests.ps1
+```
+
 **Do not commit if it fails.** It runs the same checks as CI, in the same order:
 `cargo fmt --check`, clippy with warnings denied, the Rust suite, then the web
 client's type check, tests and build.
