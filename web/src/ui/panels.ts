@@ -501,8 +501,9 @@ export function MemberList(store: Store, onOpenDm: (user: Id) => void): HTMLElem
     store.users();
     const channel = store.currentChannel();
     const kind = channel ? store.channels().get(channel)?.k : undefined;
-    // A direct conversation's roster is fixed — it is what identifies the
-    // conversation — so the editing controls only make sense on named channels.
+    // A direct conversation cannot be edited in place — its member set
+    // identifies the conversation — so the editing controls only make sense
+    // on named channels. People may still leave and later rejoin a DM.
     const editable = channel !== null && kind !== 'dm' && kind !== 'group';
     const meId = store.me()?.id;
 

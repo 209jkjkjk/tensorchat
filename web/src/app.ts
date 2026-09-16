@@ -398,6 +398,18 @@ function start(root: HTMLElement): void {
       if (!confirm(question)) return;
       void api.updateChannel(channel.id, { archived }).catch(() => {});
     },
+    leave: () => {
+      const id = store.currentChannel();
+      const channel = id ? store.channels().get(id) : undefined;
+      if (!channel) return;
+      const title = store.channelTitle(channel);
+      const direct = channel.k === 'dm' || channel.k === 'group';
+      const question = direct
+        ? `退出与“${title}”的私聊后，将从私聊列表中移除，之后可以重新发起。确定退出吗？`
+        : `退出“${title}”后，将从频道列表中移除，之后可以重新加入。确定退出吗？`;
+      if (!confirm(question)) return;
+      void api.leaveChannel(channel.id).catch(() => {});
+    },
     openSearch: () => search.open(),
   });
 
@@ -440,7 +452,6 @@ function start(root: HTMLElement): void {
   // Open whatever the URL asks for, or the first channel, once the workspace
   // snapshot arrives. A permalink wins: it is the more specific request, and
   // it is what the person clicking the link actually wanted to see.
-  let opened = false;
   effect(() => {
     // `me` is populated by the initial Ready frame, so the card cannot flash
     // while the socket is still loading the workspace snapshot.
@@ -452,8 +463,7 @@ function start(root: HTMLElement): void {
 
   effect(() => {
     const channels = store.sortedChannels();
-    if (opened || store.currentChannel() || channels.length === 0) return;
-    opened = true;
+    if (store.currentChannel() || channels.length === 0) return;
     if (!openFromHash()) openChannel(channels[0].id);
   });
 
@@ -523,6 +533,7 @@ function ChannelHeader(
     togglePinned: () => void;
     toggleMuted: () => void;
     toggleArchived: () => void;
+    leave: () => void;
     openSearch: () => void;
   },
 ): HTMLElement {
@@ -595,6 +606,17 @@ function ChannelHeader(
                 on: { click: actions.toggleMuted },
               },
               icon(muted ? ICONS.bellOff : ICONS.bell, 17),
+            )
+          : null,
+        c
+          ? el(
+              'button',
+              {
+                class: 'icon-button leave-button',
+                title: c.k === 'dm' || c.k === 'group' ? '退出私聊' : '退出频道',
+                on: { click: actions.leave },
+              },
+              icon(ICONS.logOut, 17),
             )
           : null,
         el(

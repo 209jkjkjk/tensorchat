@@ -1166,10 +1166,10 @@ async fn a_removed_member_loses_access() {
 }
 
 #[tokio::test]
-async fn direct_message_membership_cannot_be_edited() {
+async fn direct_message_membership_cannot_be_edited_but_can_be_left() {
     let app = App::new();
     let (alice, _) = app.account("alice").await;
-    let (_, bob_id) = app.account("bob").await;
+    let (bob, bob_id) = app.account("bob").await;
     let (_, carol_id) = app.account("carol").await;
 
     let (_, dm) = app
@@ -1203,6 +1203,91 @@ async fn direct_message_membership_cannot_be_edited() {
         )
         .await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
+
+    let (status, _) = app
+        .send(
+            "POST",
+            &format!("/api/channels/{ch}/leave"),
+            Some(&alice),
+            None,
+        )
+        .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+
+    let (_, alice_channels) = app.send("GET", "/api/channels", Some(&alice), None).await;
+    assert!(alice_channels.as_array().unwrap().is_empty());
+
+    let (_, bob_channels) = app.send("GET", "/api/channels", Some(&bob), None).await;
+    assert_eq!(bob_channels.as_array().unwrap().len(), 1);
+
+    // Reopening the same DM re-joins its existing channel rather than
+    // creating a duplicate conversation.
+    let (status, reopened) = app
+        .send(
+            "POST",
+            "/api/dm",
+            Some(&alice),
+            Some(json!({ "users": [bob_id] })),
+        )
+        .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(reopened["id"], ch);
+}
+
+#[tokio::test]
+async fn a_member_can_leave_named_channels() {
+    let app = App::new();
+    let (alice, _) = app.account("alice").await;
+    let (bob, bob_id) = app.account("bob").await;
+
+    let (_, public) = app
+        .send(
+            "POST",
+            "/api/channels",
+            Some(&alice),
+            Some(json!({ "name": "general" })),
+        )
+        .await;
+    let public_id = public["id"].as_str().unwrap();
+    app.send(
+        "POST",
+        &format!("/api/channels/{public_id}/join"),
+        Some(&bob),
+        None,
+    )
+    .await;
+
+    let (status, _) = app
+        .send(
+            "POST",
+            &format!("/api/channels/{public_id}/leave"),
+            Some(&bob),
+            None,
+        )
+        .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+
+    let (_, private) = app
+        .send(
+            "POST",
+            "/api/channels",
+            Some(&alice),
+            Some(json!({ "name": "private", "private": true, "members": [bob_id] })),
+        )
+        .await;
+    let private_id = private["id"].as_str().unwrap();
+    let (status, _) = app
+        .send(
+            "POST",
+            &format!("/api/channels/{private_id}/leave"),
+            Some(&bob),
+            None,
+        )
+        .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+
+    let (_, bob_channels) = app.send("GET", "/api/channels", Some(&bob), None).await;
+    assert!(bob_channels.as_array().unwrap().is_empty());
 }
 
 #[tokio::test]

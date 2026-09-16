@@ -351,6 +351,10 @@ ul, ol {
   background: var(--press);
 }
 
+.leave-button:hover {
+  color: var(--danger-text);
+}
+
 /* Colored initials tile. JS sets width/height/font-size/background inline,
    so only layout and typography belong here. */
 .avatar {

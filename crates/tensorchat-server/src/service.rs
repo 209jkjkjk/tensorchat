@@ -341,9 +341,30 @@ pub async fn open_dm(st: &Shared, creator: &User, with: Vec<Id>) -> ApiResult<Ch
     }
     let id = st.next_id();
     let creator_id = creator.id;
-    let channel = st
+    let mut channel = st
         .db(move |s| s.open_dm(id, creator_id, with, now_ms()))
         .await?;
+
+    // Leaving a DM removes only the caller's membership. Starting the same
+    // conversation again should therefore bring them back into the existing
+    // history instead of creating a second channel with the same people.
+    let channel_id = channel.id;
+    if st
+        .db(move |s| s.join_channel(channel_id, creator_id, now_ms()))
+        .await?
+    {
+        channel.members.push(creator_id);
+        channel.members.sort_unstable();
+        st.hub.subscribe_user(creator_id, channel.id);
+        st.hub.broadcast_frame(
+            channel.id,
+            &ServerFrame::Member {
+                channel: channel.id,
+                user: creator_id,
+                join: true,
+            },
+        );
+    }
 
     let frame = ServerFrame::Chan {
         channel: channel.clone(),
@@ -393,12 +414,10 @@ pub async fn join_channel(st: &Shared, user: &User, channel: Id) -> ApiResult<Ch
 }
 
 pub async fn leave_channel(st: &Shared, user: &User, channel: Id) -> ApiResult<()> {
-    let target = st.db(move |s| s.channel(channel)).await?;
-    if target.kind.is_direct() {
-        return Err(ApiError::BadRequest(
-            "direct messages cannot be left".into(),
-        ));
-    }
+    // Resolve first so a nonexistent channel still returns not found. For a
+    // DM this removes only the caller; the conversation and its other members
+    // remain intact and can be rejoined by starting that DM again.
+    st.db(move |s| s.channel(channel)).await?;
     let user_id = user.id;
     if st.db(move |s| s.leave_channel(channel, user_id)).await? {
         // Broadcast before dropping their subscription, so the departing
