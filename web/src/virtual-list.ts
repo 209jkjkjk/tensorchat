@@ -435,6 +435,13 @@ export class VirtualList<T> {
   private applyHeightChanges(changes: Map<number, number>): void {
     if (changes.size === 0) return;
     const scrollTopBefore = this.opts.viewport.scrollTop;
+    // A row can be measured for the first time immediately after a jump to
+    // the bottom (for example, when opening a channel). In that case the
+    // estimated height used for the jump is no longer trustworthy. Preserve
+    // the chat invariant that a pinned viewport stays at the real bottom;
+    // compensating only for rows above the viewport leaves a newly-measured
+    // last row's height below the viewport and makes the list stop short.
+    const wasPinned = this.isPinnedToBottom();
     let compensation = 0;
     for (const [index, newHeight] of changes) {
       const oldHeight = this.heights[index]!;
@@ -443,7 +450,10 @@ export class VirtualList<T> {
       if (oldOffset < scrollTopBefore) compensation += newHeight - oldHeight;
     }
     this.rebuildOffsets();
-    if (compensation !== 0) {
+    if (wasPinned) {
+      const maxScroll = Math.max(0, this.offsets[this.items.length]! - this.opts.viewport.clientHeight);
+      this.opts.viewport.scrollTop = maxScroll;
+    } else if (compensation !== 0) {
       this.opts.viewport.scrollTop = scrollTopBefore + compensation;
     }
     this.renderVisible();

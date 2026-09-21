@@ -267,6 +267,20 @@ test("appending while pinned to the bottom auto-scrolls to the new bottom", () =
   assert.equal(viewport.scrollTop, 400, "must auto-scroll to the new bottom (500 - 100)");
 });
 
+test("measuring a newly visible row keeps a bottom-pinned list at the real bottom", () => {
+  const { vl, viewport } = harness({ clientHeight: 100, estimateHeight: 20, overscan: 2 });
+  const items = makeItems(20, 20);
+  items[19].height = 100; // the last row is initially only estimated
+
+  vl.setItems(items);
+  vl.scrollToBottom();
+
+  // The real content is 19 * 20 + 100 = 480px tall. The measurement happens
+  // while the last row is brought into view by scrollToBottom().
+  assert.equal(viewport.scrollTop, 380, "must settle on the measured bottom, not the estimated one");
+  assert.equal(vl.isPinnedToBottom(), true);
+});
+
 test("appending while scrolled away from the bottom does not auto-scroll", () => {
   const { vl, viewport } = harness({ clientHeight: 100, estimateHeight: 20, overscan: 2 });
   const items = makeItems(20, 20);
