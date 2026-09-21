@@ -63,11 +63,11 @@ export function MessageList(store: Store, actions: MessageActions): HTMLElement 
     estimateHeight: 44,
     overscan: 6,
     key: (row) => row.key,
-    renderRow: (row) => renderRow(store, actions, row),
+    renderRow: (row) => renderRow(store, actions, row, () => list.invalidate()),
     // Recycled rows are rebuilt in place rather than replaced, so the element
     // (and its scroll-anchoring identity) survives.
     updateRow: (element, row) => {
-      const fresh = renderRow(store, actions, row);
+      const fresh = renderRow(store, actions, row, () => list.invalidate());
       element.className = fresh.className;
       replace(element, [...fresh.childNodes]);
     },
@@ -319,7 +319,12 @@ function messageEditor(actions: MessageActions, m: Message): HTMLElement {
   );
 }
 
-function renderRow(store: Store, actions: MessageActions, row: Row): HTMLElement {
+function renderRow(
+  store: Store,
+  actions: MessageActions,
+  row: Row,
+  onImageLoad?: () => void,
+): HTMLElement {
   if (row.kind === 'day') {
     return el(
       'div',
@@ -346,7 +351,7 @@ function renderRow(store: Store, actions: MessageActions, row: Row): HTMLElement
       ),
     );
   }
-  return renderMessage(store, actions, row.m, row.grouped);
+  return renderMessage(store, actions, row.m, row.grouped, onImageLoad);
 }
 
 export function renderMessage(
@@ -354,6 +359,7 @@ export function renderMessage(
   actions: MessageActions,
   m: Message,
   grouped: boolean,
+  onImageLoad?: () => void,
 ): HTMLElement {
   const author = store.user(m.au);
   const name = author ? author.n || author.h : 'unknown';
@@ -432,7 +438,7 @@ export function renderMessage(
     main.appendChild(messageEditor(actions, m));
     // No hover bar and no reactions while editing: the row is a form, and
     // offering "delete" beside a half-typed correction invites a misclick.
-    if (m.at?.length) main.appendChild(attachments(m.at));
+    if (m.at?.length) main.appendChild(attachments(m.at, onImageLoad));
   } else {
     const body = el('div', {
       class: `message-body${isEmojiOnly(m.b) ? ' jumbo' : ''}`,
@@ -449,7 +455,7 @@ export function renderMessage(
     if (m.ed) body.appendChild(el('span', { class: 'edited', text: '（已编辑）' }));
     main.appendChild(body);
 
-    if (m.at?.length) main.appendChild(attachments(m.at));
+    if (m.at?.length) main.appendChild(attachments(m.at, onImageLoad));
     if (m.rx?.length) main.appendChild(reactions(m, actions));
     if (m.rc) {
       main.appendChild(
@@ -472,17 +478,22 @@ function isCoarsePointer(): boolean {
   return typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches;
 }
 
-function attachments(list: Attachment[]): HTMLElement {
+function attachments(list: Attachment[], onImageLoad?: () => void): HTMLElement {
   const wrap = el('div', { class: 'attachments' });
   for (const a of list) {
     if (a.mt.startsWith('image/')) {
       const img = el('img', {
         class: 'attachment-image',
-        src: fileUrl(a.id),
         alt: a.n,
         loading: 'lazy',
         decoding: 'async',
       });
+      // ResizeObserver normally catches this too, but the explicit load hook
+      // covers browsers where an image's decoded size does not produce a row
+      // resize notification. That matters here because the list may already
+      // have scrolled to the estimated bottom before the bytes arrive.
+      if (onImageLoad !== undefined) img.addEventListener('load', onImageLoad);
+      img.src = fileUrl(a.id);
       // Reserve the box before the bytes arrive, so loading an image does not
       // shove the conversation around. The server reads these from the file
       // header at upload time precisely for this.

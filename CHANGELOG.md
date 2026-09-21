@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Keep the message viewport pinned to the true bottom while row heights are measured, including when opening a channel or receiving a new message.
+- Re-measure message rows when an attached image finishes loading, so image decoding cannot leave the viewport short of the bottom.
 
 - 无频道的工作区增加首次进入引导，提供加入频道和创建频道入口，并提示聊天记录保留策略。
 - 注册时增加确认密码输入，避免两次输入不一致仍提交注册请求。

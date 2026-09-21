@@ -281,6 +281,22 @@ test("measuring a newly visible row keeps a bottom-pinned list at the real botto
   assert.equal(vl.isPinnedToBottom(), true);
 });
 
+test("a late image resize keeps a bottom-pinned list at the real bottom", () => {
+  const { vl, viewport, rowsByKey } = harness({ clientHeight: 100, estimateHeight: 20, overscan: 2 });
+  const items = makeItems(20, 20);
+
+  vl.setItems(items);
+  vl.scrollToBottom();
+  assert.equal(viewport.scrollTop, 300);
+
+  // An image can finish decoding after the row was first measured.
+  rowsByKey.get("m19").offsetHeight = 100;
+  vl.invalidate();
+
+  assert.equal(viewport.scrollTop, 380, "late image growth must not leave the viewport above the bottom");
+  assert.equal(vl.isPinnedToBottom(), true);
+});
+
 test("appending while scrolled away from the bottom does not auto-scroll", () => {
   const { vl, viewport } = harness({ clientHeight: 100, estimateHeight: 20, overscan: 2 });
   const items = makeItems(20, 20);
